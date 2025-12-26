@@ -7,7 +7,6 @@
 </head>
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
   <div class="logo">Aruvi Organics</div>
   <ul>
@@ -16,19 +15,35 @@
   </ul>
 </nav>
 
-<!-- PRODUCTS -->
 <section class="shop-container">
   <h2>Our Products</h2>
-  <div id="productGrid" class="product-grid">
-    <!-- Products load from backend -->
+
+  <div class="product-grid">
+    <div class="product-card" onclick="location.href='product.html'">
+      <img src="images/product1.jpg" alt="Organic Honey">
+      <h4>Organic Honey</h4>
+      <p class="price">$15.00</p>
+      <button class="add-to-cart" onclick="event.stopPropagation()">Add to Cart</button>
+    </div>
+
+    <div class="product-card" onclick="location.href='product.html'">
+      <img src="images/product2.jpg" alt="Herbal Tea">
+      <h4>Herbal Tea</h4>
+      <p class="price">$10.00</p>
+      <button class="add-to-cart" onclick="event.stopPropagation()">Add to Cart</button>
+    </div>
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer>
   <p>© 2025 Aruvi Organics</p>
 </footer>
 
-<script src="script.js"></script>
 </body>
 </html>
+<script>
+function openProduct(name, price, image) {
+  window.location.href =
+    `product.html?name=${encodeURIComponent(name)}&price=${price}&image=${image}`;
+}
+</script>
