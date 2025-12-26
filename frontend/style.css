@@ -39,14 +39,15 @@ body {
   gap: 20px;
 }
 
-.navbar a {
-  color: white;
+.navbar ul li a {
   text-decoration: none;
-  font-weight: bold;
+  color: white;
+  font-weight: 500;
+  transition: color 0.3s;
 }
 
-.navbar a:hover {
-  text-decoration: underline;
+.navbar ul li a:hover {
+  color: #f4a261;
 }
 
 /* =========================
@@ -127,7 +128,6 @@ body {
   transform: translateY(-5px);
 }
 
-/* ORGANIC BADGE */
 .product-card::before {
   content: "Organic";
   position: absolute;
@@ -152,8 +152,9 @@ body {
 }
 
 .price {
-  color: #2a7b2a;
+  font-size: 22px;
   font-weight: bold;
+  color: #2a7b2a;
   margin-bottom: 10px;
 }
 
@@ -187,6 +188,8 @@ body {
 
 .product-detail img {
   width: 100%;
+  height: 350px;
+  object-fit: cover;
   border-radius: 12px;
 }
 
@@ -196,11 +199,52 @@ body {
 
 .product-info .price {
   font-size: 20px;
+  font-weight: bold;
   margin: 10px 0;
 }
 
 .product-info p {
   line-height: 1.6;
+}
+
+.quantity-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.quantity-box button {
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.total {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* =========================
+   PRODUCT ZOOM
+========================= */
+.img-zoom-container {
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  height: 350px;
+  border: 1px solid #ddd;
+  overflow: hidden;
+}
+
+#lens {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border: 2px solid #2e7d32;
+  display: none;
 }
 
 /* =========================
@@ -285,9 +329,141 @@ body {
    FOOTER
 ========================= */
 footer {
-  margin-top: 50px;
   background: #212321;
   color: white;
   text-align: center;
-  padding: 12px;
+  padding: 12px 0;
+  margin-top: 40px;
+}
+
+footer p {
+  margin: 0;
+}
+
+footer a {
+  color: #a5d6a7;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   PROFILE PAGE
+========================= */
+.profile-container {
+  max-width: 900px;
+  margin: 50px auto;
+  padding: 20px;
+}
+
+/* USER CARD */
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #ffffff;
+  padding: 25px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  margin-bottom: 40px;
+}
+
+.user-avatar img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #2a7b2a;
+}
+
+.user-info h2 {
+  margin-bottom: 5px;
+  color: #2b322b;
+}
+
+.user-info p {
+  color: #3a3a3a;
+  font-size: 0.9rem;
+}
+
+/* PROFILE SECTION */
+.profile-section {
+  margin-bottom: 30px;
+}
+
+.profile-section h3 {
+  margin-bottom: 15px;
+  color: #2b322b;
+  border-left: 4px solid #2a7b2a;
+  padding-left: 10px;
+}
+
+/* LIST ITEMS */
+.profile-section ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.profile-section ul li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9f9f9;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.profile-section ul li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* ADD ITEM INPUT + BUTTON */
+.add-item {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.add-item input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+}
+
+.add-item button {
+  padding: 10px 20px;
+  background-color: #2a7b2a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.add-item button:hover {
+  background-color: #1f5f1f;
+}
+
+/* REMOVE BUTTON */
+.profile-section button {
+  padding: 5px 10px;
+  background-color: #e76f51;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.3s;
+}
+
+.profile-section button:hover {
+  background-color: #d65a3a;
 }

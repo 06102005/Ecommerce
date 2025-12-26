@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile | Aruvi Organics</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="logo">Aruvi Organics</div>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="shop.html">Shop</a></li>
+    <li><a href="profile.html">Profile</a></li>
+    <li><a href="signin.html" id="logoutBtn">Logout</a></li>
+  </ul>
+</nav>
+
+<!-- PROFILE SECTION -->
+<section class="profile-container">
+  <!-- User Card -->
+  <div class="user-card">
+    <div class="user-avatar">
+      <img src="images/user-avatar.png" alt="User Avatar">
+    </div>
+    <div class="user-info">
+      <h2 id="userName">User Name</h2>
+      <p>Member since: <span id="memberSince">2025</span></p>
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div class="profile-section">
+    <h3>Your Orders</h3>
+    <ul id="ordersList"></ul>
+  </div>
+
+  <!-- Certificates / Cart -->
+  <div class="profile-section">
+    <h3>Certificates / Cart</h3>
+    <ul id="certList"></ul>
+    <div class="add-item">
+      <input type="text" id="newCert" placeholder="Add new certificate/item">
+      <button id="addCertBtn">Add</button>
+    </div>
+  </div>
+</section>
+
+<script src="profile.js"></script>
+</body>
+</html>
