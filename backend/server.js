@@ -3,6 +3,8 @@ const cors = require("cors");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
+const productRoutes = require("./routes/productRoutes");
+const Product = require("./models/Product");
 
 const app = express();
 
@@ -10,7 +12,7 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
-
+app.use("/api/products", productRoutes);
 app.get("/", (req, res) => {
   res.send("Backend API running");
 });
