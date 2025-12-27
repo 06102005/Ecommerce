@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 const productRoutes = require("./routes/productRoutes");
 const Product = require("./models/Product");
 const authRoutes = require("./routes/authRoutes");
+const { protect } = require("./middleware/authMiddleware");
 
 const app = express();
 
@@ -18,6 +19,12 @@ app.use("/api/products", productRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend API running");
+});
+app.get("/api/protected", protect, (req, res) => {
+  res.json({
+    message: "Access granted",
+    user: req.user,
+  });
 });
 
 const PORT = process.env.PORT || 5000;
