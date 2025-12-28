@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile | Aruvi Organics</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">Aruvi Organics</div>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="shop.html">Shop</a></li>
+    <li><a href="dashboard.html">My Profile</a></li>
+    <li><a href="signin.html" id="logoutBtn">Logout</a></li>
+  </ul>
+</nav>
+
+<section class="profile-container">
+  <h2>Welcome, <span id="userName">User</span></h2>
+
+  <div class="profile-section">
+    <h3>Your Orders</h3>
+    <ul id="ordersList"></ul>
+  </div>
+
+  <div class="profile-section">
+    <h3>Your Certificates / Cart</h3>
+    <ul id="certList"></ul>
+    <input type="text" id="newCert" placeholder="Add new certificate/item">
+    <button id="addCertBtn">Add</button>
+  </div>
+</section>
+
+<script src="profile.js"></script>
+</body>
+</html>
