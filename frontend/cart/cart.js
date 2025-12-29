@@ -1,10 +1,5 @@
 const cartItems = document.getElementById("cartItems");
 
-// Check if user is logged in
-if (!localStorage.getItem('loggedInUser')) {
-  window.location.href = 'signin.html';
-}
-
 // LOAD CART
 function loadCart() {
   fetch("http://localhost:5000/api/cart")
