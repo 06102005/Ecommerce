@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>Sign Up | Aruvi Organics</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="signup.js">
+
 </head>
 <body>
 
@@ -11,7 +13,6 @@
   <div class="logo">Aruvi Organics</div>
   <ul>
     <li><a href="index.html">Home</a></li>
-    <li><a href="shop.html">Shop</a></li>
     <li><a href="signin.html">Sign In</a></li>
   </ul>
 </nav>
@@ -19,19 +20,21 @@
 <section class="auth-container">
   <h2>Create Account</h2>
 
-  <form class="auth-form">
+  <form id="signupForm">
     <input type="text" placeholder="Full Name" required>
     <input type="email" placeholder="Email" required>
     <input type="password" placeholder="Password" required>
     <button type="submit">Sign Up</button>
   </form>
 
-  <p class="auth-text">
+  <p>
     Already have an account?
     <a href="signin.html">Sign In</a>
   </p>
 </section>
 
-<script src="signup.js"></script>
+<script src="js/signup.js"></script>
 </body>
+
+
 </html>
