@@ -3,17 +3,43 @@
 <head>
   <title>Product</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="product.js">
 </head>
 <body>
 
-<h2 id="name"></h2>
-<img id="image" width="200">
-<p>Price: $<span id="price"></span></p>
+<div class="navbar">
+  <div class="logo">Aruvi Organics</div>
+  <a href="cart.html" class="btn">Cart 🛒(<span id="cartCount">)</a>
+</div>
 
-<button onclick="addToCart()">Add to Cart</button>
-<a href="cart.html">Go to Cart</a>
+<div class="product-detail">
 
-<script src="js/product.js"></script>
+  <div class="image-box">
+    <img id="productImg">
+  </div>
+
+  <div class="product-info">
+    <h2 id="productName"></h2>
+    <p id="productRating" style="font-size:18px;color:#fbc02d;"></p>
+    <p class="price">$<span id="productPrice"></span></p>
+
+    <p id="productDesc"></p>
+    <p><b>Delivery:</b> 3–5 Working Days</p>
+
+    <div class="quantity-box">
+      <button onclick="changeQty(-1)">-</button>
+      <span id="qty">1</span>
+      <button onclick="changeQty(1)">+</button>
+    </div>
+
+    <p>Total: $<span id="totalPrice"></span></p>
+
+    <button onclick="addToCart()">Add to Cart</button>
+  </div>
+
+</div>
+
+<script src="product.js"></script>
+<script src="cartCount.js"></script>
+
 </body>
 </html>
