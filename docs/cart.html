@@ -3,13 +3,22 @@
 <head>
   <title>Cart</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="cart.js">
 </head>
 <body>
 
-<h2>Your Cart</h2>
-<ul id="cartItems"></ul>
+<div class="navbar">
+  <div class="logo">Aruvi Organics</div>
+  <a href="shop.html" class="btn">Shop</a>
+</div>
 
-<script src="js/cart.js"></script>
+<div class="cart-container">
+  <h2>Your Cart</h2>
+  <div id="cartItems"></div>
+  <h3>Total: $<span id="cartTotal">0</span></h3>
+</div>
+
+<script src="cart.js"></script>
+<script src="cartCount.js"></script>
+
 </body>
 </html>

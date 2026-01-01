@@ -1,28 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Shop</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="shop.js">
 </head>
 <body>
 
-<h2>Our Products</h2>
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="logo">Aruvi Organics</div>
+  <a href="cart.html" class="btn">Cart 🛒(<span id="cartCount">)</a>
+</div>
+
+<h2 class="shop-title">Our Products</h2>
+
 
 <div class="product-grid">
-  <div class="product-card" onclick="openProduct('Organic Honey',15,'images/product1.jpg')">
+
+  <div class="product-card"
+    onclick="openProduct('Organic Honey',15,'images/product1.jpg','⭐⭐⭐⭐')">
     <img src="images/product1.jpg">
     <h4>Organic Honey</h4>
     <p>$15</p>
   </div>
 
-  <div class="product-card" onclick="openProduct('Herbal Tea',10,'images/product2.jpg')">
+  <div class="product-card"
+    onclick="openProduct('Herbal Tea',10,'images/product2.jpg','⭐⭐⭐⭐')">
     <img src="images/product2.jpg">
     <h4>Herbal Tea</h4>
     <p>$10</p>
   </div>
+
 </div>
 
-<script src="js/shop.js"></script>
+<script src="shop.js"></script>
+<script src="cartCount.js"></script>
+
+
 </body>
 </html>
+
+

@@ -1,4 +1,7 @@
-function openProduct(name, price, image) {
+function openProduct(name, price, image, rating) {
   window.location.href =
-    `product.html?name=${name}&price=${price}&image=${image}`;
+    `product.html?name=${encodeURIComponent(name)}
+    &price=${price}
+    &image=${encodeURIComponent(image)}
+    &rating=${encodeURIComponent(rating)}`;
 }
