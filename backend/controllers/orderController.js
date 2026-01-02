@@ -60,8 +60,46 @@ const getAllOrders = async (req, res) => {
   res.json(orders);
 };
 
+// @desc   Update order to paid
+// @route  PUT /api/orders/:id/pay
+// @access Private
+const updateOrderToPaid = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (order) {
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.paymentResult = {
+      id: req.body.id,
+      status: req.body.status,
+      update_time: req.body.update_time,
+      email_address: req.body.email_address,
+    };
+
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } else {
+    res.status(404).json({ message: "Order not found" });
+  }
+};
+const updateOrderToDelivered = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (order) {
+    order.isDelivered = true;
+    order.deliveredAt = Date.now();
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } else {
+    res.status(404).json({ message: "Order not found" });
+  }
+};
+
+
 module.exports = {
   createOrder,
   getMyOrders,
   getAllOrders,
+  updateOrderToPaid,
+  updateOrderToDelivered,
 };

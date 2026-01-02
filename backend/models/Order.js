@@ -39,6 +39,11 @@ const orderSchema = mongoose.Schema(
 
     isDelivered: { type: Boolean, default: false },
     deliveredAt: { type: Date },
+    paymentResult: {
+  id: String,
+  status: String,
+  update_time: String,
+  email_address: String,},
   },
   { timestamps: true }
 );
