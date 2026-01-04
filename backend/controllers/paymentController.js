@@ -1,23 +1,27 @@
 const razorpay = require("../config/razorpay");
 
-// @desc   Create Razorpay order
-// @route  POST /api/payment/create
-// @access Private
 const createPaymentOrder = async (req, res) => {
-  const { amount } = req.body;
-
   try {
+    console.log("Payment request body:", req.body);
+
     const options = {
-      amount: amount * 100, // Razorpay works in paise
+      amount: Number(req.body.amount) * 100,
       currency: "INR",
-      receipt: `rcpt_${Date.now()}`,
+      receipt: "receipt_test_123",
     };
 
+    console.log("Creating Razorpay order...");
+
     const order = await razorpay.orders.create(options);
+
+    console.log("Razorpay order created:", order);
+
     res.status(201).json(order);
   } catch (error) {
+    console.error("Razorpay error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
 module.exports = { createPaymentOrder };
+

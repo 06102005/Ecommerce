@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+console.log("Razorpay key loaded:", process.env.RAZORPAY_KEY_ID ? "YES" : "NO");
 
 const connectDB = require("./config/db");
 const productRoutes = require("./routes/productRoutes");
