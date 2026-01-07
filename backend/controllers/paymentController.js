@@ -1,4 +1,6 @@
 const razorpay = require("../config/razorpay");
+const crypto = require("crypto");
+const Order = require("../models/Order");
 
 const createPaymentOrder = async (req, res) => {
   try {
@@ -23,5 +25,52 @@ const createPaymentOrder = async (req, res) => {
   }
 };
 
-module.exports = { createPaymentOrder };
 
+
+// @desc   Verify Razorpay payment
+// @route  POST /api/payment/verify
+// @access Private
+const verifyPayment = async (req, res) => {
+  const {
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+    orderId, // your MongoDB Order _id
+  } = req.body;
+
+  // Step 1: Create expected signature
+  const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+  const expectedSignature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(body)
+    .digest("hex");
+
+  // Step 2: Compare signatures
+  if (expectedSignature !== razorpay_signature) {
+    return res.status(400).json({ message: "Payment verification failed" });
+  }
+
+  // Step 3: Update order
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    return res.status(404).json({ message: "Order not found" });
+  }
+
+  order.isPaid = true;
+  order.paidAt = Date.now();
+  order.paymentResult = {
+    id: razorpay_payment_id,
+    status: "success",
+  };
+
+  await order.save();
+
+  res.json({ message: "Payment verified successfully" });
+};
+
+module.exports = {
+  createPaymentOrder,
+  verifyPayment,
+};

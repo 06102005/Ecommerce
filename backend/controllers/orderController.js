@@ -94,12 +94,64 @@ const updateOrderToDelivered = async (req, res) => {
     res.status(404).json({ message: "Order not found" });
   }
 };
+// @desc   Get order by ID (Admin)
+// @route  GET /api/orders/:id
+// @access Admin
+const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate(
+      "user",
+      "name email"
+    );
 
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc   Cancel order (User or Admin)
+// @route  PUT /api/orders/:id/cancel
+// @access Private
+const cancelOrder = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return res.status(404).json({ message: "Order not found" });
+  }
+
+  // Prevent cancelling delivered orders
+  if (order.isDelivered) {
+    return res
+      .status(400)
+      .json({ message: "Delivered orders cannot be cancelled" });
+  }
+
+  // User can cancel only their own order
+  if (
+    req.user.role !== "admin" &&
+    order.user.toString() !== req.user._id.toString()
+  ) {
+    return res.status(403).json({ message: "Not authorized to cancel this order" });
+  }
+
+  order.isCancelled = true;
+  order.cancelledAt = Date.now();
+
+  const updatedOrder = await order.save();
+  res.json(updatedOrder);
+};
 
 module.exports = {
   createOrder,
   getMyOrders,
   getAllOrders,
+  getOrderById,
   updateOrderToPaid,
   updateOrderToDelivered,
+  cancelOrder,
 };
