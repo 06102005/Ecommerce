@@ -35,3 +35,16 @@ function addToCart() {
   updateCartCount();
   alert("Product added to cart 🛒");
 }
+function buyNow() {
+  const buyItem = [{
+    name,
+    price,
+    image,
+    qty: quantity
+  }];
+
+  localStorage.setItem("buyNowItem", JSON.stringify(buyItem));
+
+  window.location.href = "checkout.html";
+}
+

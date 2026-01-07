@@ -516,3 +516,136 @@ footer {
   padding: 10px 16px;
   border-radius: 30px;
 }
+/* BUY NOW BUTTON */
+.buy-now-btn {
+  margin-top: 15px;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: #fff;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 30px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.buy-now-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
+}
+/* ===== CHECKOUT PAGE ===== */
+
+.checkout-container {
+  max-width: 900px;
+  margin: 80px auto;
+  background: #ffffff;
+  padding: 45px;
+  border-radius: 22px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+}
+
+.checkout-container h2 {
+  text-align: center;
+  font-size: 34px;
+  margin-bottom: 35px;
+  color: #222;
+}
+
+/* CHECKOUT ITEM */
+.checkout-item {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 25px;
+  align-items: center;
+  padding: 20px;
+  border-radius: 18px;
+  background: #f9fafc;
+  margin-bottom: 25px;
+}
+
+.checkout-item img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.checkout-item h4 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: #222;
+}
+
+.checkout-item p {
+  font-size: 16px;
+  color: #555;
+}
+
+/* TOTAL */
+.checkout-total {
+  text-align: right;
+  font-size: 26px;
+  margin-top: 30px;
+  color: #0456fa;
+  font-weight: bold;
+}
+
+/* ADDRESS FORM */
+.checkout-form {
+  margin-top: 40px;
+}
+
+.checkout-form h3 {
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.checkout-form input,
+.checkout-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  outline: none;
+}
+
+.checkout-form input:focus,
+.checkout-form textarea:focus {
+  border-color: #0456fa;
+  box-shadow: 0 0 6px rgba(4, 86, 250, 0.4);
+}
+
+/* PLACE ORDER BUTTON */
+.place-order-btn {
+  display: block;
+  width: 100%;
+  margin-top: 30px;
+  background: linear-gradient(135deg, #0456fa, #023bbd);
+  color: #ffffff;
+  border: none;
+  padding: 18px;
+  font-size: 20px;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.place-order-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(4, 86, 250, 0.45);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .checkout-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .checkout-total {
+    text-align: center;
+  }
+}
