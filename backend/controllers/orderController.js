@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
+const razorpay = require("../config/razorpay");
 
 // @desc   Create new order
 // @route  POST /api/orders
@@ -146,6 +147,55 @@ const cancelOrder = async (req, res) => {
   res.json(updatedOrder);
 };
 
+// @desc   Refund order (Admin only)
+// @route  PUT /api/orders/:id/refund
+// @access Admin
+const refundOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (!order.isPaid) {
+      return res.status(400).json({ message: "Order not paid" });
+    }
+
+    if (order.paymentMethod === "COD") {
+      return res.status(400).json({ message: "COD orders cannot be refunded" });
+    }
+
+    if (order.isRefunded) {
+      return res.status(400).json({ message: "Order already refunded" });
+    }
+
+    if (!order.paymentResult || !order.paymentResult.id) {
+      return res.status(400).json({ message: "Payment ID missing" });
+    }
+
+    // 🔹 Razorpay refund call
+    const refund = await razorpay.payments.refund(
+      order.paymentResult.id,
+      {
+        amount: order.totalPrice * 100, // paise
+      }
+    );
+
+    // 🔹 Save refund info
+    order.isRefunded = true;
+    order.refundedAt = Date.now();
+    order.refundId = refund.id;
+
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 module.exports = {
   createOrder,
   getMyOrders,
@@ -154,4 +204,5 @@ module.exports = {
   updateOrderToPaid,
   updateOrderToDelivered,
   cancelOrder,
+  refundOrder,
 };

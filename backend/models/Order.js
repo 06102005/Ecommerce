@@ -53,6 +53,16 @@ cancelledAt: {
   status: String,
   update_time: String,
   email_address: String,},
+
+  razorpayOrderId: { type:String,},
+razorpayPaymentId: {typr:String,},
+
+isRefunded: { type: Boolean, default: false },
+refundedAt: Date,
+refundId: String,
+
+refundFailed: { type: Boolean, default: false },
+
   },
   { timestamps: true }
 );

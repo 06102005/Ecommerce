@@ -10,6 +10,7 @@ const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const webhookRoutes = require("./routes/webhookRoutes");
 
 const { protect } = require("./middleware/authMiddleware");
 
@@ -24,7 +25,9 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payment", paymentRoutes);
-
+app.use("/api/webhooks", webhookRoutes); 
+app.use(express.json());    
+     
 app.get("/", (req, res) => {
   res.send("Backend API running");
 });
