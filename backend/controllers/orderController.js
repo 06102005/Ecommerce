@@ -5,6 +5,9 @@ const razorpay = require("../config/razorpay");
 // @desc   Create new order
 // @route  POST /api/orders
 // @access Private
+const mongoose = require("mongoose");
+const Order = require("../models/Order");
+
 const createOrder = async (req, res) => {
   try {
     const {
@@ -18,7 +21,13 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ message: "No order items" });
     }
 
-    // ✅ ADD THIS BLOCK
+    if (!paymentMethod || !["COD", "Razorpay"].includes(paymentMethod)) {
+      return res.status(400).json({
+        message: "Invalid or missing payment method",
+      });
+    }
+
+    // Validate product ObjectIds
     for (let item of orderItems) {
       if (!mongoose.Types.ObjectId.isValid(item.product)) {
         return res.status(400).json({
@@ -33,6 +42,7 @@ const createOrder = async (req, res) => {
       shippingAddress,
       paymentMethod,
       totalPrice,
+      isPaid: false,
     });
 
     const createdOrder = await order.save();
@@ -43,6 +53,9 @@ const createOrder = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+module.exports = { createOrder };
+
 
 
 // @desc   Get logged-in user's orders

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Razorpay Test</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <button id="pay">Pay Now</button>
+
+  <script>
+    document.getElementById("pay").onclick = async () => {
+      // 1. Create order from backend
+      const res = await fetch("http://localhost:5000/api/payment/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5NTRhODg3ZGQwNjNmM2VjOTUyZjEzZSIsImlhdCI6MTc2Nzk0MTI3OSwiZXhwIjoxNzY4NTQ2MDc5fQ.ommQeL5dqtZMLsauz8qeYpEiZ-kPAwZ2zILm9jkvmGQ"
+        },
+        body: JSON.stringify({ amount: 500 })
+      });
+
+      const order = await res.json();
+
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: "rzp_test_S0u3alwZTeYkzz",
+        amount: order.amount,
+        currency: "INR",
+        name: "Test Store",
+        order_id: order.id,
+        handler: function (response) {
+          console.log("Payment success", response);
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    };
+  </script>
+</body>
+</html>

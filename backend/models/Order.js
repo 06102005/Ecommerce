@@ -58,10 +58,11 @@ cancelledAt: {
 razorpayPaymentId: {typr:String,},
 
 isRefunded: { type: Boolean, default: false },
-refundedAt: Date,
-refundId: String,
-
-refundFailed: { type: Boolean, default: false },
+refundedAt: { type : Date,},
+refundResult: {
+  refundId: String,
+  status: String,
+},
 
   },
   { timestamps: true }
