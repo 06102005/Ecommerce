@@ -9,6 +9,8 @@ const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const refundRoutes = require("./routes/refundRoutes");
+const webhookRoutes = require("./routes/webhookRoutes");
 
 const { protect } = require("./middleware/authMiddleware");
 const { razorpayWebhook} = require("./controllers/webhookController");
@@ -16,6 +18,8 @@ const { razorpayWebhook} = require("./controllers/webhookController");
 const app = express();
 
 connectDB();
+
+app.use("/api/webhooks", webhookRoutes);
 
 app.use(cors());
 
@@ -26,6 +30,7 @@ app.post(
   razorpayWebhook
 );
 
+
 /* ✅ Now enable JSON parsing for rest of app */
 app.use(express.json());
 
@@ -35,6 +40,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/refund", refundRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend API running");

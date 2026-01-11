@@ -47,6 +47,9 @@ const orderSchema = mongoose.Schema(
 cancelledAt: {
   type: Date,
 },
+cancelReason: {
+  type: String,
+},
 
     paymentResult: {
   id: String,
@@ -60,9 +63,16 @@ razorpayPaymentId: {typr:String,},
 isRefunded: { type: Boolean, default: false },
 refundedAt: { type : Date,},
 refundResult: {
-  refundId: String,
+  id: String,
   status: String,
 },
+
+refundStatus: {
+  type: String,
+  enum: ["pending", "processed", "failed"],
+  default: "pending",
+},
+
 
   },
   { timestamps: true }

@@ -5,8 +5,6 @@ const razorpay = require("../config/razorpay");
 // @desc   Create new order
 // @route  POST /api/orders
 // @access Private
-const mongoose = require("mongoose");
-const Order = require("../models/Order");
 
 const createOrder = async (req, res) => {
   try {
@@ -128,85 +126,6 @@ const getOrderById = async (req, res) => {
   }
 };
 
-// @desc   Cancel order (User or Admin)
-// @route  PUT /api/orders/:id/cancel
-// @access Private
-const cancelOrder = async (req, res) => {
-  const order = await Order.findById(req.params.id);
-
-  if (!order) {
-    return res.status(404).json({ message: "Order not found" });
-  }
-
-  // Prevent cancelling delivered orders
-  if (order.isDelivered) {
-    return res
-      .status(400)
-      .json({ message: "Delivered orders cannot be cancelled" });
-  }
-
-  // User can cancel only their own order
-  if (
-    req.user.role !== "admin" &&
-    order.user.toString() !== req.user._id.toString()
-  ) {
-    return res.status(403).json({ message: "Not authorized to cancel this order" });
-  }
-
-  order.isCancelled = true;
-  order.cancelledAt = Date.now();
-
-  const updatedOrder = await order.save();
-  res.json(updatedOrder);
-};
-
-// @desc   Refund order (Admin only)
-// @route  PUT /api/orders/:id/refund
-// @access Admin
-const refundOrder = async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id);
-
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
-    if (!order.isPaid) {
-      return res.status(400).json({ message: "Order not paid" });
-    }
-
-    if (order.paymentMethod === "COD") {
-      return res.status(400).json({ message: "COD orders cannot be refunded" });
-    }
-
-    if (order.isRefunded) {
-      return res.status(400).json({ message: "Order already refunded" });
-    }
-
-    if (!order.paymentResult || !order.paymentResult.id) {
-      return res.status(400).json({ message: "Payment ID missing" });
-    }
-
-    // 🔹 Razorpay refund call
-    const refund = await razorpay.payments.refund(
-      order.paymentResult.id,
-      {
-        amount: order.totalPrice * 100, // paise
-      }
-    );
-
-    // 🔹 Save refund info
-    order.isRefunded = true;
-    order.refundedAt = Date.now();
-    order.refundId = refund.id;
-
-    const updatedOrder = await order.save();
-    res.json(updatedOrder);
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
 
 module.exports = {
@@ -216,6 +135,4 @@ module.exports = {
   getOrderById,
   updateOrderToPaid,
   updateOrderToDelivered,
-  cancelOrder,
-  refundOrder,
 };
