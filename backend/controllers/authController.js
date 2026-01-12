@@ -31,7 +31,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// LOGIN
+//Login
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -47,7 +47,10 @@ const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, isAdmin: user.isAdmin },
+      {
+        id: user._id,
+        role: user.role,   // ✅ IMPORTANT
+      },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -56,11 +59,13 @@ const loginUser = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      role: user.role,    // ✅ MUST BE SENT
       token,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 module.exports = { registerUser, loginUser };
