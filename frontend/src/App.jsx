@@ -7,6 +7,7 @@ import Cart from "./pages/Cart";
 import AdminOrders from "./pages/AdminOrders";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ProductDetails from "./pages/ProductDetails";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
       </ProtectedRoute>
     }
   />
+<Route path="/product/:id" element={<ProductDetails />} />
 
   <Route path="*" element={<NotFound />} />
 </Routes>

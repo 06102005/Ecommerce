@@ -6,12 +6,14 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
+  getProductById,
 } = require("../controllers/productController");
 
 const { protect, admin } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
 router.get("/", getProducts);
+router.get("/:id", getProductById);
 router.post(
   "/",
   protect,
@@ -28,6 +30,8 @@ router.put(
   updateProduct
 );
 router.delete("/:id", protect, admin, deleteProduct);
+
+
 module.exports = router;
 
 
