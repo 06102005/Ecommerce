@@ -8,6 +8,7 @@ import AdminOrders from "./pages/AdminOrders";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails";
+import Checkout from "./pages/Checkout";
 
 function App() {
   return (
@@ -37,6 +38,15 @@ function App() {
     }
   />
 <Route path="/product/:id" element={<ProductDetails />} />
+
+<Route
+  path="/checkout"
+  element={
+    <ProtectedRoute>
+      <Checkout />
+    </ProtectedRoute>
+  }
+/>
 
   <Route path="*" element={<NotFound />} />
 </Routes>

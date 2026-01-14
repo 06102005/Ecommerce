@@ -1,44 +1,52 @@
 const User = require("../models/User");
 
-// @desc   Add item to cart
-// @route  POST /api/cart
-// @access Private
+/* ADD TO CART */
 const addToCart = async (req, res) => {
-  const { productId, qty } = req.body;
+  try {
+    const { productId, qty } = req.body;
 
-  const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id);
 
-  const itemIndex = user.cartItems.findIndex(
-    (item) => item.product.toString() === productId
-  );
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-  if (itemIndex > -1) {
-    // Product already in cart → update qty
-    user.cartItems[itemIndex].qty += qty;
-  } else {
-    // New product
-    user.cartItems.push({ product: productId, qty });
+    if (!user.cartItems) {
+      user.cartItems = [];
+    }
+
+    const itemIndex = user.cartItems.findIndex(
+      (item) => item.product.toString() === productId
+    );
+
+    if (itemIndex > -1) {
+      user.cartItems[itemIndex].qty += qty;
+    } else {
+      user.cartItems.push({ product: productId, qty });
+    }
+
+    await user.save();
+
+    const updatedUser = await User.findById(req.user._id)
+      .populate("cartItems.product");
+
+    res.status(201).json(updatedUser.cartItems);
+  } catch (error) {
+    console.error("ADD TO CART ERROR:", error);
+    res.status(500).json({ message: "Failed to add to cart" });
   }
-
-  await user.save();
-  res.json(user.cartItems);
 };
 
-// @desc   Get cart
-// @route  GET /api/cart
-// @access Private
+
+/* GET CART */
 const getCart = async (req, res) => {
-  const user = await User.findById(req.user._id).populate(
-    "cartItems.product",
-    "name price"
-  );
+  const user = await User.findById(req.user._id)
+    .populate("cartItems.product");
 
   res.json(user.cartItems);
 };
 
-// @desc   Remove item from cart
-// @route  DELETE /api/cart/:productId
-// @access Private
+/* REMOVE FROM CART */
 const removeFromCart = async (req, res) => {
   const user = await User.findById(req.user._id);
 
@@ -47,7 +55,42 @@ const removeFromCart = async (req, res) => {
   );
 
   await user.save();
-  res.json(user.cartItems);
+
+  const updatedUser = await User.findById(req.user._id)
+    .populate("cartItems.product");
+
+  res.json(updatedUser.cartItems);
 };
 
-module.exports = { addToCart, getCart, removeFromCart };
+/* UPDATE CART ITEM QTY */
+const updateCartItem = async (req, res) => {
+  const { productId } = req.params;
+  const { qty } = req.body;
+
+  const user = await User.findById(req.user._id);
+
+  const item = user.cartItems.find(
+    (i) => i.product.toString() === productId
+  );
+
+  if (!item) {
+    return res.status(404).json({ message: "Item not found in cart" });
+  }
+
+  item.qty = qty;
+
+  await user.save();
+
+  const updatedUser = await User.findById(req.user._id)
+    .populate("cartItems.product");
+
+  res.json(updatedUser.cartItems);
+};
+
+module.exports = {
+  addToCart,
+  getCart,
+  removeFromCart,
+  updateCartItem,
+};
+
