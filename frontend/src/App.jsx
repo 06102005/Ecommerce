@@ -8,7 +8,8 @@ import AdminOrders from "./pages/AdminOrders";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails";
-import Checkout from "./pages/Checkout";
+import Checkout from "./pages/checkout";
+import Order from "./pages/Order";
 
 function App() {
   return (
@@ -44,6 +45,14 @@ function App() {
   element={
     <ProtectedRoute>
       <Checkout />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/order/:id"
+  element={
+    <ProtectedRoute>
+      <Order />
     </ProtectedRoute>
   }
 />

@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const razorpay = require("../config/razorpay");
-
+const Product = require("../models/Product");
 // @desc   Create new order
 // @route  POST /api/orders
 // @access Private
-
 const createOrder = async (req, res) => {
   try {
     const {
@@ -25,18 +24,32 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Validate product ObjectIds
+    // ✅ Build proper order items (snapshot)
+    const processedOrderItems = [];
+
     for (let item of orderItems) {
       if (!mongoose.Types.ObjectId.isValid(item.product)) {
-        return res.status(400).json({
-          message: "Invalid product ID",
-        });
+        return res.status(400).json({ message: "Invalid product ID" });
       }
+
+      const product = await Product.findById(item.product);
+
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      processedOrderItems.push({
+        name: product.name,
+        image: product.image,        // ✅ FIXED
+        price: product.price,
+        qty: item.qty,
+        product: product._id,
+      });
     }
 
     const order = new Order({
       user: req.user._id,
-      orderItems,
+      orderItems: processedOrderItems, // ✅ USE THIS
       shippingAddress,
       paymentMethod,
       totalPrice,
@@ -47,12 +60,13 @@ const createOrder = async (req, res) => {
     res.status(201).json(createdOrder);
 
   } catch (error) {
-    console.error("ORDER ERROR:", error.message);
+    console.error("ORDER ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
 module.exports = { createOrder };
+
 
 
 

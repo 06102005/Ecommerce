@@ -64,10 +64,13 @@ const Checkout = () => {
         },
         body: JSON.stringify({
           orderItems: cartItems.map(item => ({
-            product: item.product._id,
-            qty: item.qty,
-            price: item.product.price,
-          })),
+  name: item.product.name,
+  image: item.product.image,
+  price: item.product.price,
+  qty: item.qty,
+  product: item.product._id,
+})),
+
           shippingAddress,
           paymentMethod,
           totalPrice,
