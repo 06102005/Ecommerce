@@ -1,13 +1,16 @@
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 
 const Layout = ({ children }) => {
   return (
     <>
-      <Navbar />        {/* ✅ NAVBAR RENDERS HERE */}
-      <main>{children}</main>  {/* ✅ ROUTES RENDER HERE */}
+      <Navbar />
+      <main style={{ minHeight: "80vh" }}>
+        {children}
+      </main>
+      <Footer />
     </>
   );
 };
 
 export default Layout;
-
