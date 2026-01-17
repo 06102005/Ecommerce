@@ -1,60 +1,73 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "./Login.css";
 
-function Login() {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
   const navigate = useNavigate();
-  const { login } = useAuth(); // ✅ ADD THIS
+  const { login } = useAuth();
 
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.message || "Login failed");
-      return;
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      login(data);
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
     }
-
-    // ✅ USE CONTEXT — NOT localStorage DIRECTLY
-    login(data);
-
-    navigate("/");
   };
 
   return (
-    <form onSubmit={submitHandler}>
-      <h1>Login</h1>
+    <div className="auth-container">
+      <form className="auth-form" onSubmit={submitHandler}>
+        <h2>Login</h2>
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
+        {error && <p className="error">{error}</p>}
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
+        <input
+          type="email"
+          placeholder="Email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      <button type="submit">Login</button>
-    </form>
+        <input
+          type="password"
+          placeholder="Password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button type="submit">Login</button>
+
+        <p>
+          New here? <Link to="/register">Create an account</Link>
+        </p>
+      </form>
+    </div>
   );
-}
+};
 
 export default Login;
+
 
 

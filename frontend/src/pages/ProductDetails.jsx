@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import "./ProductDetails.css";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
@@ -31,35 +34,13 @@ const ProductDetails = () => {
     fetchProduct();
   }, [id]);
 
-  // 🔹 Stock display logic
-  const getStockText = () => {
-    if (product.countInStock === 0) return "Out of stock";
-    if (product.countInStock > 15) return "In stock";
-    return ` Only ${product.countInStock} left !`;
-  };
-
-  // 🔹 Quantity controls
-  const increaseQty = () => {
-    if (qty < product.countInStock) {
-      setQty(qty + 1);
-    }
-  };
-
-  const decreaseQty = () => {
-    if (qty > 1) {
-      setQty(qty - 1);
-    }
-  };
-
   const addToCartHandler = async () => {
+    if (!user || !user.token) {
+      navigate("/login");
+      return;
+    }
+
     try {
-      const user = JSON.parse(localStorage.getItem("userInfo"));
-
-      if (!user || !user.token) {
-        navigate("/cart");
-        return;
-      }
-
       const res = await fetch("http://localhost:5000/api/cart", {
         method: "POST",
         headers: {
@@ -78,7 +59,6 @@ const ProductDetails = () => {
         throw new Error(data.message || "Add to cart failed");
       }
 
-      alert("Product added to cart");
       navigate("/cart");
     } catch (err) {
       alert(err.message);
@@ -89,53 +69,47 @@ const ProductDetails = () => {
   if (error) return <h2>{error}</h2>;
   if (!product) return <h2>Product not found</h2>;
 
+  const stock = product.countInStock;
+
+  const stockText =
+    stock > 15
+      ? "In stock"
+      : stock > 0
+      ? `${stock} left in stock`
+      : "Out of stock";
+
   return (
-    <div style={{ display: "flex", gap: "40px", padding: "20px" }}>
+    <div className="product-container">
       <img
         src={`http://localhost:5000${product.image}`}
         alt={product.name}
-        style={{ width: "400px", height: "500px", objectFit: "cover" }}
+        className="product-image"
       />
 
-      <div>
+      <div className="product-info">
         <h1>{product.name}</h1>
         <h2>₹{product.price}</h2>
-        <p>{product.description}</p>
 
-        {/* ✅ Stock status */}
-        <p>
-          <strong>Stock :</strong>{" "}
-          <span
-            style={{
-              color: product.countInStock > 0 ? "green" : "red",
-              fontWeight: "bold",
-            }}
-          >
-            {getStockText()}
-          </span>
+        <p className="description">{product.description}</p>
+
+        <p className={`stock ${stock === 0 ? "out" : ""}`}>
+          {stockText}
         </p>
 
-        {/* ✅ Quantity selector */}
-        {product.countInStock > 0 && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              marginBottom: "20px",
-            }}
-          >
-            <button onClick={decreaseQty} disabled={qty === 1}>
+        {stock > 0 && (
+          <div className="qty-controls">
+            <button
+              onClick={() => setQty(qty - 1)}
+              disabled={qty <= 1}
+            >
               −
             </button>
 
-            <span style={{ minWidth: "30px", textAlign: "center" }}>
-              {qty}
-            </span>
+            <span>{qty}</span>
 
             <button
-              onClick={increaseQty}
-              disabled={qty === product.countInStock}
+              onClick={() => setQty(qty + 1)}
+              disabled={qty >= stock}
             >
               +
             </button>
@@ -143,8 +117,9 @@ const ProductDetails = () => {
         )}
 
         <button
+          className="add-cart-btn"
+          disabled={stock === 0}
           onClick={addToCartHandler}
-          disabled={product.countInStock === 0}
         >
           Add to Cart
         </button>
@@ -154,6 +129,7 @@ const ProductDetails = () => {
 };
 
 export default ProductDetails;
+
 
 
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import "./Cart.css";
 
 const Cart = () => {
   const { user } = useAuth();
@@ -9,7 +10,6 @@ const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [error, setError] = useState("");
 
-  // 🔹 Fetch cart
   useEffect(() => {
     if (!user || !user.token) {
       navigate("/login");
@@ -30,7 +30,6 @@ const Cart = () => {
           throw new Error(data.message || "Failed to load cart");
         }
 
-        // Remove broken cart items safely
         setCartItems(data.filter(item => item.product));
       } catch (err) {
         setError(err.message);
@@ -40,73 +39,50 @@ const Cart = () => {
     fetchCart();
   }, [user, navigate]);
 
-  // 🔹 Update quantity (+ / -)
   const updateQty = async (productId, qty) => {
     if (qty < 1) return;
 
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/cart/${productId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-          body: JSON.stringify({ qty }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to update quantity");
+    const res = await fetch(
+      `http://localhost:5000/api/cart/${productId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ qty }),
       }
-
-      setCartItems(data.filter(item => item.product));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  // 🔹 Remove item
-  const removeItem = async (productId) => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/cart/${productId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to remove item");
-      }
-
-      setCartItems(data.filter(item => item.product));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  // 🔹 Cart total
-  const getCartTotal = () => {
-    return cartItems.reduce(
-      (sum, item) => sum + item.product.price * item.qty,
-      0
     );
+
+    const data = await res.json();
+    setCartItems(data.filter(item => item.product));
   };
+
+  const removeItem = async (productId) => {
+    const res = await fetch(
+      `http://localhost:5000/api/cart/${productId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+    setCartItems(data.filter(item => item.product));
+  };
+
+  const totalPrice = cartItems.reduce(
+    (sum, item) => sum + item.product.price * item.qty,
+    0
+  );
 
   if (error) return <h2>{error}</h2>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Cart</h1>
+    <div className="cart-container">
+      <h1>Your Cart</h1>
 
       {cartItems.length === 0 ? (
         <p>Your cart is empty</p>
@@ -121,41 +97,25 @@ const Cart = () => {
                 : `${stock} left in stock`;
 
             return (
-              <div
-                key={item.product._id}
-                style={{
-                  display: "flex",
-                  gap: "20px",
-                  marginBottom: "20px",
-                  borderBottom: "1px solid #ccc",
-                  paddingBottom: "15px",
-                }}
-              >
+              <div key={item.product._id} className="cart-item">
                 <img
                   src={`http://localhost:5000${item.product.image}`}
                   alt={item.product.name}
-                  width="120"
-                  style={{ objectFit: "cover" }}
                 />
 
-                <div style={{ flex: 1 }}>
+                <div className="cart-details">
                   <h3>{item.product.name}</h3>
                   <p>₹{item.product.price}</p>
-                  <p style={{ color: "green" }}>{stockText}</p>
+                  <p className="stock">{stockText}</p>
 
-                  {/* Quantity controls */}
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <button
-                      onClick={() =>
-                        updateQty(item.product._id, item.qty - 1)
-                      }
-                    >
+                  <div className="qty-controls">
+                    <button onClick={() =>
+                      updateQty(item.product._id, item.qty - 1)
+                    }>
                       −
                     </button>
 
-                    <span style={{ margin: "0 12px" }}>
-                      {item.qty}
-                    </span>
+                    <span>{item.qty}</span>
 
                     <button
                       onClick={() =>
@@ -167,12 +127,8 @@ const Cart = () => {
                     </button>
                   </div>
 
-                  <p style={{ marginTop: "8px" }}>
-                    Subtotal: ₹{item.product.price * item.qty}
-                  </p>
-
                   <button
-                    style={{ marginTop: "10px" }}
+                    className="remove-btn"
                     onClick={() => removeItem(item.product._id)}
                   >
                     Remove
@@ -182,27 +138,14 @@ const Cart = () => {
             );
           })}
 
-          {/* Cart total */}
-          <div
-            style={{
-              marginTop: "30px",
-              paddingTop: "20px",
-              borderTop: "2px solid black",
-            }}
-          >
-            <h2>Total: ₹{getCartTotal()}</h2>
+          <h2>Total: ₹{totalPrice}</h2>
 
-            <button
-              style={{
-                padding: "10px 20px",
-                fontSize: "16px",
-                marginTop: "10px",
-              }}
-              onClick={() => navigate("/checkout")}
-            >
-              Proceed to Checkout
-            </button>
-          </div>
+          <button
+            className="checkout-btn"
+            onClick={() => navigate("/checkout")}
+          >
+            Proceed to Checkout
+          </button>
         </>
       )}
     </div>
@@ -210,6 +153,7 @@ const Cart = () => {
 };
 
 export default Cart;
+
 
 
 

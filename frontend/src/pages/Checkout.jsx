@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import "./Checkout.css";
 
 const Checkout = () => {
   const { user } = useAuth();
@@ -9,6 +10,7 @@ const Checkout = () => {
   const [cartItems, setCartItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const [shippingAddress, setShippingAddress] = useState({
     address: "",
@@ -16,17 +18,6 @@ const Checkout = () => {
     postalCode: "",
     country: "",
   });
-
-  /* ---------------- Razorpay Loader ---------------- */
-  const loadRazorpay = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
 
   /* ---------------- Fetch Cart ---------------- */
   useEffect(() => {
@@ -44,11 +35,17 @@ const Checkout = () => {
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
+        if (!res.ok) throw new Error(data.message || "Failed to load cart");
 
-        setCartItems(data.filter((item) => item.product));
+        // ✅ FIX: support both array & object response
+        const items = Array.isArray(data) ? data : data.items || [];
+
+        // ✅ Remove broken cart items
+        setCartItems(items.filter((item) => item.product));
       } catch (err) {
         setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -64,8 +61,12 @@ const Checkout = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
 
+    if (cartItems.length === 0) {
+      alert("Cart is empty");
+      return;
+    }
+
     try {
-      /* 1️⃣ Create order in DB */
       const res = await fetch("http://localhost:5000/api/orders", {
         method: "POST",
         headers: {
@@ -74,11 +75,8 @@ const Checkout = () => {
         },
         body: JSON.stringify({
           orderItems: cartItems.map((item) => ({
-            name: item.product.name,
-            image: item.product.image,
-            price: item.product.price,
-            qty: item.qty,
             product: item.product._id,
+            qty: item.qty,
           })),
           shippingAddress,
           paymentMethod,
@@ -87,93 +85,23 @@ const Checkout = () => {
       });
 
       const order = await res.json();
-      if (!res.ok) throw new Error(order.message);
+      if (!res.ok) throw new Error(order.message || "Order failed");
 
-      /* 2️⃣ COD → Done */
-      if (paymentMethod === "COD") {
-        navigate(`/order/${order._id}`);
-        return;
-      }
-
-      /* 3️⃣ Razorpay Payment */
-      await startRazorpayPayment(order);
+      // ✅ Payment handling later
+      navigate(`/order/${order._id}`);
     } catch (err) {
       alert(err.message);
     }
   };
 
-  /* ---------------- Razorpay Payment ---------------- */
-  const startRazorpayPayment = async (order) => {
-    const loaded = await loadRazorpay();
-    if (!loaded) {
-      alert("Razorpay SDK failed to load");
-      return;
-    }
-
-    /* Create Razorpay order (backend) */
-    const res = await fetch("http://localhost:5000/api/payment/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({
-        orderId: order._id,
-        amount: order.totalPrice,
-      }),
-    });
-
-    const razorOrder = await res.json();
-    if (!res.ok) throw new Error(razorOrder.message);
-
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount: razorOrder.amount,
-      currency: "INR",
-      order_id: razorOrder.id,
-      name: "My Ecommerce Store",
-      description: "Order Payment",
-
-      handler: async function (response) {
-        /* Verify payment */
-        const verifyRes = await fetch(
-          "http://localhost:5000/api/payment/verify",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${user.token}`,
-            },
-            body: JSON.stringify({
-              ...response,
-              orderId: order._id,
-            }),
-          }
-        );
-
-        const verifyData = await verifyRes.json();
-        if (!verifyRes.ok) {
-          alert(verifyData.message);
-          return;
-        }
-
-        navigate(`/order/${order._id}`);
-      },
-
-      theme: { color: "#3399cc" },
-    };
-
-    const razorpay = new window.Razorpay(options);
-    razorpay.open();
-  };
-
-  if (error) return <h2>{error}</h2>;
+  if (loading) return <h2 className="loading">Loading checkout...</h2>;
+  if (error) return <h2 className="error">{error}</h2>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="checkout-container">
       <h1>Checkout</h1>
 
-      <form onSubmit={submitHandler}>
+      <form className="checkout-form" onSubmit={submitHandler}>
         <h2>Shipping Address</h2>
 
         <input
@@ -220,7 +148,7 @@ const Checkout = () => {
 
         <h2>Payment Method</h2>
 
-        <label>
+        <label className="radio">
           <input
             type="radio"
             value="COD"
@@ -230,33 +158,36 @@ const Checkout = () => {
           Cash on Delivery
         </label>
 
-        <br />
-
-        <label>
+        <label className="radio">
           <input
             type="radio"
             value="Razorpay"
             checked={paymentMethod === "Razorpay"}
             onChange={(e) => setPaymentMethod(e.target.value)}
           />
-          Online Payment
+          Online Payment (later)
         </label>
 
         <h2>Order Summary</h2>
 
         {cartItems.map((item) => (
-          <p key={item.product._id}>
-            {item.product.name} × {item.qty} = ₹
-            {item.product.price * item.qty}
-          </p>
+          <div key={item.product._id} className="summary-item">
+            <span>{item.product.name}</span>
+            <span>
+              {item.qty} × ₹{item.product.price}
+            </span>
+          </div>
         ))}
 
         <h3>Total: ₹{totalPrice}</h3>
 
-        <button type="submit">Place Order</button>
+        <button type="submit" className="place-order-btn">
+          Place Order
+        </button>
       </form>
     </div>
   );
 };
 
 export default Checkout;
+

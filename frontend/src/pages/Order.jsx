@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import "./Order.css";
 
 const Order = () => {
   const { id } = useParams();
   const { user } = useAuth();
 
   const [order, setOrder] = useState(null);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -23,10 +24,7 @@ const Order = () => {
         );
 
         const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.message || "Failed to fetch order");
-        }
+        if (!res.ok) throw new Error(data.message || "Failed to load order");
 
         setOrder(data);
       } catch (err) {
@@ -39,57 +37,71 @@ const Order = () => {
     fetchOrder();
   }, [id, user]);
 
-  if (loading) return <h2>Loading order...</h2>;
-  if (error) return <h2>{error}</h2>;
+  if (loading) return <h2 className="loading">Loading order...</h2>;
+  if (error) return <h2 className="error">{error}</h2>;
+  if (!order) return <h2>Order not found</h2>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="order-container">
       <h1>Order Details</h1>
 
-      <p><strong>Order ID:</strong> {order._id}</p>
+      <div className="order-box">
+        <p><strong>Order ID:</strong> {order._id}</p>
+        <p><strong>Payment Method:</strong> {order.paymentMethod}</p>
+        <p>
+          <strong>Status:</strong>{" "}
+          <span className={order.isPaid ? "paid" : "not-paid"}>
+            {order.isPaid ? "Paid" : "Not Paid"}
+          </span>
+        </p>
+      </div>
 
-      <h3>Shipping Address</h3>
-      <p>
-        {order.shippingAddress.address},{" "}
-        {order.shippingAddress.city},{" "}
-        {order.shippingAddress.postalCode},{" "}
-        {order.shippingAddress.country}
-      </p>
+      <div className="order-box">
+        <h2>Shipping Address</h2>
+        <p>{order.shippingAddress.address}</p>
+        <p>
+          {order.shippingAddress.city},{" "}
+          {order.shippingAddress.postalCode}
+        </p>
+        <p>{order.shippingAddress.country}</p>
+      </div>
 
-      <h3>Payment Method</h3>
-      <p>{order.paymentMethod}</p>
+      <div className="order-box">
+        <h2>Order Items</h2>
 
-      <h3>Order Items</h3>
+        {order.orderItems.map((item, index) => (
+          <div key={index} className="order-item">
+            <img
+              src={
+                item.image
+                  ? `http://localhost:5000${item.image}`
+                  : "/placeholder.png"
+              }
+              alt={item.name}
+              onError={(e) => {
+                e.target.src = "/placeholder.png";
+              }}
+            />
 
-      {order.orderItems.map(item => (
-        <div
-          key={item.product}
-          style={{
-            display: "flex",
-            gap: "15px",
-            marginBottom: "15px",
-            borderBottom: "1px solid #ccc",
-            paddingBottom: "10px",
-          }}
-        >
-          <img
-  src={`http://localhost:5000${item.image}`}
-  alt={item.name}
-  width="80"
-/>
-
-          <div>
-            <p>{item.name}</p>
-            <p>
-              {item.qty} × ₹{item.price} = ₹{item.qty * item.price}
-            </p>
+            <div className="order-item-info">
+              <p className="name">{item.name}</p>
+              <p>
+                {item.qty} × ₹{item.price}
+              </p>
+              <p className="item-total">
+                ₹{item.qty * item.price}
+              </p>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      <h2>Total: ₹{order.totalPrice}</h2>
+      <div className="order-total">
+        <h2>Total: ₹{order.totalPrice}</h2>
+      </div>
     </div>
   );
 };
 
 export default Order;
+
