@@ -9,7 +9,7 @@ const createPaymentOrder = async (req, res) => {
     const options = {
       amount: Number(req.body.amount) * 100,
       currency: "INR",
-      receipt: "receipt_test_123",
+      receipt: `order_${orderId}`,
     };
 
     console.log("Creating Razorpay order...");

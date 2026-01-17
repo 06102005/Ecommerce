@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Layout from "./components/Layout";
+import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Cart from "./pages/Cart";
@@ -16,6 +17,7 @@ function App() {
     <BrowserRouter>
       <Layout>
         <Routes>
+  <Route path="/register" element={<Register />} />
   <Route path="/" element={<Home />} />
   <Route path="/login" element={<Login />} />
 
