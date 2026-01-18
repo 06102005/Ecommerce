@@ -23,7 +23,7 @@ router.get("/", protect, admin, getAllOrders);
 router.get("/:id", protect, getOrderById);
 
 // Payment & delivery
-router.put("/:id/pay", protect, updateOrderToPaid);
+router.put("/:id/pay", protect, admin, updateOrderToPaid);
 router.put("/:id/deliver", protect, admin, updateOrderToDelivered);
 
 // Cancellation & refund

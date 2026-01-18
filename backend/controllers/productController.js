@@ -77,7 +77,7 @@ const createProduct = async (req, res) => {
       description: req.body.description,
       category: req.body.category,
       countInStock: req.body.countInStock,
-      image: req.file ? `/uploads/${req.file.filename}` : "",
+      image: req.file ? `/uploads/${req.file.filename}` : req.body.image ,
     });
 
     const createdProduct = await product.save();

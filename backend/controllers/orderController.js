@@ -90,36 +90,46 @@ const getAllOrders = async (req, res) => {
 // @route  PUT /api/orders/:id/pay
 // @access Private
 const updateOrderToPaid = async (req, res) => {
-  const order = await Order.findById(req.params.id);
+  try {
+    const order = await Order.findById(req.params.id);
 
-  if (order) {
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
     order.isPaid = true;
     order.paidAt = Date.now();
-    order.paymentResult = {
-      id: req.body.id,
-      status: req.body.status,
-      update_time: req.body.update_time,
-      email_address: req.body.email_address,
-    };
 
-    const updatedOrder = await order.save();
+    const updatedOrder = await order.save({ validateBeforeSave: false });
+
     res.json(updatedOrder);
-  } else {
-    res.status(404).json({ message: "Order not found" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
   }
 };
-const updateOrderToDelivered = async (req, res) => {
-  const order = await Order.findById(req.params.id);
 
-  if (order) {
+
+const updateOrderToDelivered = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
     order.isDelivered = true;
     order.deliveredAt = Date.now();
-    const updatedOrder = await order.save();
+
+    const updatedOrder = await order.save({ validateBeforeSave: false });
+
     res.json(updatedOrder);
-  } else {
-    res.status(404).json({ message: "Order not found" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
   }
 };
+
 // @desc   Get order by ID (Admin)
 // @route  GET /api/orders/:id
 // @access Admin
