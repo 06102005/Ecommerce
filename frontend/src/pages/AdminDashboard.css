@@ -1,92 +1,109 @@
 .admin-dashboard {
   padding: 30px;
-  max-width: 1200px;
-  margin: auto;
+  background: #fff;
+  min-height: 100vh;
 }
 
+/* ---------- Title ---------- */
 .admin-dashboard h1 {
   margin-bottom: 25px;
-  font-size: 28px;
+  color: #ff7a00;
+  text-align: center;
 }
 
 /* ---------- Stats Cards ---------- */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 20px;
   margin-bottom: 40px;
 }
 
 .card {
-  background: #ffffff;
-  border-radius: 10px;
+  background: #000;
+  color: #fff;
   padding: 22px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
   text-align: center;
 }
 
 .card h3 {
-  font-size: 16px;
-  color: #555;
+  font-size: 15px;
   margin-bottom: 10px;
 }
 
 .card p {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: bold;
-  color: #222;
+  color: #ff7a00;
 }
 
 .card.revenue p {
-  color: #0a8f08;
+  color: #00ff9c;
 }
 
 /* ---------- Chart ---------- */
-.chart-card {
-  background: #fff;
+.chart-box {
+  background: #f7f7f7;
+  padding: 20px;
   border-radius: 10px;
-  padding: 25px;
   margin-bottom: 40px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
 }
 
-.chart-card h2 {
-  margin-bottom: 20px;
+.chart-box h2 {
+  margin-bottom: 15px;
 }
 
-/* ---------- Quick Links ---------- */
+.empty {
+  text-align: center;
+  color: #777;
+}
+
+/* ---------- Links ---------- */
 .admin-links {
   display: flex;
+  justify-content: center;
   gap: 15px;
   flex-wrap: wrap;
 }
 
 .admin-links a {
-  background: #222;
-  color: white;
-  padding: 12px 18px;
+  padding: 12px 20px;
+  background: #ff7a00;
+  color: #fff;
   border-radius: 6px;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: bold;
 }
 
 .admin-links a:hover {
-  background: #444;
+  background: #e36b00;
 }
 
 /* ---------- States ---------- */
-.loading {
-  padding: 40px;
+.loading,
+.error {
   text-align: center;
-  color: #666;
+  padding: 40px;
+  font-size: 18px;
 }
 
-.error {
-  padding: 40px;
-  text-align: center;
-  color: #c0392b;
-  font-weight: bold;
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .admin-dashboard {
+    padding: 20px;
+  }
+
+  .card p {
+    font-size: 20px;
+  }
+
+  .chart-box {
+    padding: 15px;
+  }
 }
+
+
 
 
 

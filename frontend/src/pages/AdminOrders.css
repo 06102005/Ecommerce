@@ -1,12 +1,12 @@
 .admin-orders {
-  padding: 20px;
+  padding: 30px;
   background: #fff;
-  color: #000;
+  min-height: 100vh;
 }
 
 .admin-orders h1 {
-  margin-bottom: 20px;
   color: #ff7a00;
+  margin-bottom: 20px;
 }
 
 /* ---------- Filters ---------- */
@@ -14,6 +14,7 @@
   display: flex;
   gap: 10px;
   margin-bottom: 15px;
+  flex-wrap: wrap;
 }
 
 .filters button {
@@ -21,12 +22,29 @@
   color: #fff;
   border: none;
   padding: 6px 14px;
-  cursor: pointer;
   border-radius: 4px;
+  cursor: pointer;
 }
 
+.filters button.active,
 .filters button:hover {
   background: #ff7a00;
+}
+
+/* ---------- Bulk ---------- */
+.bulk-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.bulk-actions button {
+  background: #ff7a00;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 /* ---------- Table ---------- */
@@ -35,18 +53,22 @@ table {
   border-collapse: collapse;
 }
 
-th {
+thead {
   background: #000;
+}
+
+thead th {
   color: #fff;
   padding: 10px;
 }
 
-td {
+tbody td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
   text-align: center;
 }
 
+/* ---------- Status ---------- */
 .status {
   padding: 4px 8px;
   border-radius: 4px;
@@ -69,38 +91,63 @@ td {
 }
 
 /* ---------- Buttons ---------- */
-.actions {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-}
-
-.btn {
-  background: #ff7a00;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.btn.secondary {
-  color:#ddd;
-  background: #555;
-}
-
 .view-btn {
   text-decoration: none;
-  color: #fff;
   background: #555;
+  color: #fff;
   padding: 5px 10px;
   border-radius: 4px;
 }
 
+/* ---------- Pagination ---------- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/* ---------- States ---------- */
 .loading,
 .error {
   padding: 30px;
   text-align: center;
 }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  table,
+  thead,
+  tbody,
+  tr,
+  td,
+  th {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody tr {
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 6px;
+  }
+
+  tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    font-weight: bold;
+  }
+}
+
+
 
 

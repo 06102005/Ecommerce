@@ -2,12 +2,17 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import "./AdminProducts.css";
 
+const PRODUCTS_PER_PAGE = 6;
+
 const AdminProducts = () => {
   const { user } = useAuth();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
+
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   const [form, setForm] = useState({
     name: "",
@@ -16,12 +21,17 @@ const AdminProducts = () => {
     description: "",
   });
 
+  const [preview, setPreview] = useState(null);
+
   /* ---------- Fetch Products ---------- */
   const fetchProducts = async () => {
-    const res = await fetch("http://localhost:5000/api/products");
-    const data = await res.json();
-    setProducts(data.products || data);
-    setLoading(false);
+    try {
+      const res = await fetch("http://localhost:5000/api/products");
+      const data = await res.json();
+      setProducts(data.products || data);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -31,32 +41,25 @@ const AdminProducts = () => {
   /* ---------- Submit ---------- */
   const submitHandler = async (e) => {
     e.preventDefault();
+    if (!user?.token) return alert("Unauthorized");
 
     const formData = new FormData();
-    formData.append("name", form.name);
-    formData.append("price", form.price);
-    formData.append("description", form.description);
-    if (form.image) formData.append("image", form.image);
+    Object.entries(form).forEach(([k, v]) => {
+      if (v) formData.append(k, v);
+    });
 
     const url = editingId
       ? `http://localhost:5000/api/products/${editingId}`
       : "http://localhost:5000/api/products";
 
-    const method = editingId ? "PUT" : "POST";
-
     const res = await fetch(url, {
-      method,
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
+      method: editingId ? "PUT" : "POST",
+      headers: { Authorization: `Bearer ${user.token}` },
       body: formData,
     });
 
     const data = await res.json();
-    if (!res.ok) {
-      alert(data.message);
-      return;
-    }
+    if (!res.ok) return alert(data.message);
 
     resetForm();
     fetchProducts();
@@ -68,9 +71,7 @@ const AdminProducts = () => {
 
     await fetch(`http://localhost:5000/api/products/${id}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
+      headers: { Authorization: `Bearer ${user.token}` },
     });
 
     fetchProducts();
@@ -85,19 +86,43 @@ const AdminProducts = () => {
       image: null,
       description: p.description,
     });
+    setPreview(`http://localhost:5000${p.image}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const resetForm = () => {
     setEditingId(null);
     setForm({ name: "", price: "", image: null, description: "" });
+    setPreview(null);
   };
 
-  if (loading) return <h2>Loading...</h2>;
+  /* ---------- Search + Pagination ---------- */
+  const filtered = products.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filtered.length / PRODUCTS_PER_PAGE);
+  const start = (page - 1) * PRODUCTS_PER_PAGE;
+  const paginated = filtered.slice(start, start + PRODUCTS_PER_PAGE);
+
+  if (loading) return <h2 className="loading">Loading products…</h2>;
 
   return (
     <div className="admin-products">
       <h1>Admin Products</h1>
 
+      {/* -------- Search -------- */}
+      <input
+        className="search"
+        placeholder="Search products…"
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
+      />
+
+      {/* -------- Form -------- */}
       <form onSubmit={submitHandler} className="product-form">
         <h2>{editingId ? "Edit Product" : "Add Product"}</h2>
 
@@ -119,10 +144,16 @@ const AdminProducts = () => {
         <input
           type="file"
           accept="image/*"
-          onChange={(e) =>
-            setForm({ ...form, image: e.target.files[0] })
-          }
+          onChange={(e) => {
+            const file = e.target.files[0];
+            setForm({ ...form, image: file });
+            setPreview(URL.createObjectURL(file));
+          }}
         />
+
+        {preview && (
+          <img src={preview} alt="Preview" className="preview" />
+        )}
 
         <textarea
           placeholder="Description"
@@ -145,43 +176,67 @@ const AdminProducts = () => {
         </div>
       </form>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((p) => (
-            <tr key={p._id}>
-              <td>
-                <img
-                  src={`http://localhost:5000${p.image}`}
-                  alt={p.name}
-                />
-              </td>
-              <td>{p.name}</td>
-              <td>₹{p.price}</td>
-              <td>
-                <button onClick={() => editHandler(p)}>Edit</button>
-                <button
-                  className="danger"
-                  onClick={() => deleteHandler(p._id)}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* -------- Products -------- */}
+      {paginated.length === 0 ? (
+        <p className="empty">No products found</p>
+      ) : (
+        <>
+          <table>
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {paginated.map((p) => (
+                <tr key={p._id}>
+                  <td>
+                    <img
+                      src={`http://localhost:5000${p.image}`}
+                      alt={p.name}
+                    />
+                  </td>
+                  <td>{p.name}</td>
+                  <td>₹{p.price}</td>
+                  <td>
+                    <button onClick={() => editHandler(p)}>Edit</button>
+                    <button
+                      className="danger"
+                      onClick={() => deleteHandler(p._id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Pagination */}
+          <div className="pagination">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+              Prev
+            </button>
+            <span>
+              Page {page} / {totalPages}
+            </span>
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage(page + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
 export default AdminProducts;
+
 
 

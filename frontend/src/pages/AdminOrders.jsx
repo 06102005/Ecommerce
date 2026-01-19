@@ -3,17 +3,23 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./AdminOrders.css";
 
+const ORDERS_PER_PAGE = 6;
+
 const AdminOrders = () => {
   const { user } = useAuth();
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState([]);
 
-
-  /* ---------------- Fetch Orders ---------------- */
+  /* ---------- Fetch Orders ---------- */
   const fetchOrders = async () => {
+    if (!user?.token) return;
+
     try {
       let url = "http://localhost:5000/api/orders";
 
@@ -31,6 +37,8 @@ const AdminOrders = () => {
       if (!res.ok) throw new Error(data.message || "Failed to load orders");
 
       setOrders(data);
+      setSelected([]);
+      setPage(1);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -39,54 +47,74 @@ const AdminOrders = () => {
   };
 
   useEffect(() => {
-    if (user?.token) {
-      setLoading(true);
-      fetchOrders();
-    }
-  }, [user, filter]);
+    setLoading(true);
+    fetchOrders();
+    setSelected([]);
+  }, [filter, user, page]);
 
-  /* ---------------- Mark Paid ---------------- */
-  const markPaid = async (id) => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/orders/${id}/pay`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
+  /* ---------- Guards ---------- */
+  if (!user || user.role !== "admin") {
+    return <h2 className="error">Not authorized</h2>;
+  }
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+  /* ---------- Pagination ---------- */
+  const totalPages = Math.max(
+    1,
+    Math.ceil(orders.length / ORDERS_PER_PAGE)
+  );
 
-      fetchOrders(); // 🔁 always refetch
-    } catch (err) {
-      alert(err.message);
-    }
+  const start = (page - 1) * ORDERS_PER_PAGE;
+  const paginatedOrders = orders.slice(
+    start,
+    start + ORDERS_PER_PAGE
+  );
+
+  /* ---------- Selection ---------- */
+  const toggleSelect = (id) => {
+    setSelected((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id]
+    );
   };
 
-  /* ---------------- Mark Delivered ---------------- */
-  const markDelivered = async (id) => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/orders/${id}/deliver`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
+  const selectAll = () => {
+  const pageIds = paginatedOrders.map(o => o._id);
+
+  const allSelected = pageIds.every(id =>
+    selected.includes(id)
+  );
+
+  setSelected(allSelected ? [] : pageIds);
+};
+
+
+  /* ---------- Bulk Actions ---------- */
+  const bulkAction = async (type) => {
+    if (selected.length === 0) return;
+
+    const validOrders = orders.filter((o) =>
+      selected.includes(o._id)
+    );
+
+    const requests = validOrders
+      .filter((o) =>
+        type === "pay" ? !o.isPaid : !o.isDelivered
+      )
+      .map((o) =>
+        fetch(
+          `http://localhost:5000/api/orders/${o._id}/${type}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${user.token}`,
+            },
+          }
+        )
       );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      fetchOrders(); // 🔁 always refetch
-    } catch (err) {
-      alert(err.message);
-    }
+    await Promise.all(requests);
+    fetchOrders();
   };
 
   if (loading) return <h2 className="loading">Loading orders…</h2>;
@@ -96,99 +124,138 @@ const AdminOrders = () => {
     <div className="admin-orders">
       <h1>Admin Orders</h1>
 
-      {/* -------- Filters -------- */}
+      {/* ---------- Filters ---------- */}
       <div className="filters">
-        <button onClick={() => setFilter("all")}>All</button>
-        <button onClick={() => setFilter("paid")}>Paid</button>
-        <button onClick={() => setFilter("pending")}>Pending</button>
-        <button onClick={() => setFilter("delivered")}>Delivered</button>
+        {["all", "paid", "pending", "delivered"].map((f) => (
+          <button
+            key={f}
+            className={filter === f ? "active" : ""}
+            onClick={() => setFilter(f)}
+          >
+            {f.toUpperCase()}
+          </button>
+        ))}
       </div>
 
-      {orders.length === 0 ? (
+      {/* ---------- Bulk Actions ---------- */}
+      {selected.length > 0 && (
+        <div className="bulk-actions">
+          <span>{selected.length} selected</span>
+          <button onClick={() => bulkAction("pay")}>
+            Mark Paid
+          </button>
+          <button onClick={() => bulkAction("deliver")}>
+            Mark Delivered
+          </button>
+        </div>
+      )}
+
+      {paginatedOrders.length === 0 ? (
         <p>No orders found</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>User</th>
-              <th>Date</th>
-              <th>Total</th>
-              <th>Payment</th>
-              <th>Paid</th>
-              <th>Delivered</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+        <>
+          <table>
+            <thead>
+              <tr>
+                <th>
+                  <input
+  type="checkbox"
+  checked={
+    paginatedOrders.length > 0 &&
+    paginatedOrders.every(o => selected.includes(o._id))
+  }
+  onChange={selectAll}
+/>
 
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order._id}>
-                <td>{order._id.slice(-6)}</td>
-                <td>{order.user?.email || "User"}</td>
-                <td>
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </td>
-                <td>₹{order.totalPrice}</td>
-                <td>{order.paymentMethod}</td>
-
-                <td>
-                  <span
-                    className={
-                      order.isPaid ? "status paid" : "status pending"
-                    }
-                  >
-                    {order.isPaid ? "Yes" : "No"}
-                  </span>
-                </td>
-
-                <td>
-                  <span
-                    className={
-                      order.isDelivered
-                        ? "status delivered"
-                        : "status pending"
-                    }
-                  >
-                    {order.isDelivered ? "Yes" : "No"}
-                  </span>
-                </td>
-
-                <td className="actions">
-                  <Link
-                    className="view-btn"
-                    to={`/order/${order._id}`}
-                  >
-                    View
-                  </Link>
-
-                  {!order.isPaid && (
-                    <button
-                      className="btn"
-                      onClick={() => markPaid(order._id)}
-                    >
-                      Mark Paid
-                    </button>
-                  )}
-
-                  {!order.isDelivered && (
-                    <button
-                      className="btn secondary"
-                      onClick={() => markDelivered(order._id)}
-                    >
-                      Deliver
-                    </button>
-                  )}
-                </td>
+                </th>
+                <th>ID</th>
+                <th>User</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Delivered</th>
+                <th />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {paginatedOrders.map((o) => (
+                <tr key={o._id}>
+                  <td data-label="Select">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(o._id)}
+                      onChange={() => toggleSelect(o._id)}
+                    />
+                  </td>
+                  <td data-label="ID">{o._id.slice(-6)}</td>
+                  <td data-label="User">
+                    {o.user?.email || "User"}
+                  </td>
+                  <td data-label="Total">₹{o.totalPrice}</td>
+
+                  <td data-label="Paid">
+                    <span
+                      className={`status ${
+                        o.isPaid ? "paid" : "pending"
+                      }`}
+                    >
+                      {o.isPaid ? "Yes" : "No"}
+                    </span>
+                  </td>
+
+                  <td data-label="Delivered">
+                    <span
+                      className={`status ${
+                        o.isDelivered
+                          ? "delivered"
+                          : "pending"
+                      }`}
+                    >
+                      {o.isDelivered ? "Yes" : "No"}
+                    </span>
+                  </td>
+
+                  <td data-label="Action">
+                    <Link
+                      className="view-btn"
+                      to={`/order/${o._id}`}
+                    >
+                      View
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* ---------- Pagination ---------- */}
+          <div className="pagination">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              Prev
+            </button>
+
+            <span>
+              Page {page} / {totalPages}
+            </span>
+
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage(page + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
 };
 
 export default AdminOrders;
+
+
 
 

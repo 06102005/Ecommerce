@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -23,15 +23,19 @@ ChartJS.register(
 const AdminDashboard = () => {
   const { user } = useAuth();
 
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    totalProducts: 0,
+    totalUsers: 0,
+    totalRevenue: 0,
+    monthlySales: [],
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!user || !user.token) {
-      setLoading(false);
-      return;
-    }
+    if (!user || !user.token) return;
 
     const fetchStats = async () => {
       try {
@@ -45,11 +49,20 @@ const AdminDashboard = () => {
         );
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
+        if (!res.ok) throw new Error(data.message || "Failed to load stats");
 
-        setStats(data);
+        setStats({
+          totalOrders: Number(data.totalOrders) || 0,
+          totalProducts: Number(data.totalProducts) || 0,
+          totalUsers: Number(data.totalUsers) || 0,
+          totalRevenue: Number(data.totalRevenue) || 0,
+          monthlySales: Array.isArray(data.monthlySales)
+            ? data.monthlySales
+            : [],
+        });
       } catch (err) {
-        setError(err.message || "Failed to load dashboard");
+        console.error("Dashboard error:", err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -58,43 +71,36 @@ const AdminDashboard = () => {
     fetchStats();
   }, [user]);
 
-  if (!user) return <h2 className="loading">Checking access…</h2>;
-  if (user.role !== "admin")
+  /* ---------- Guards ---------- */
+  if (!user || user.role !== "admin") {
     return <h2 className="error">Not authorized</h2>;
-  if (loading) return <h2 className="loading">Loading dashboard…</h2>;
-  if (error) return <h2 className="error">{error}</h2>;
+  }
 
-  /* ---------- Chart Data ---------- */
+  if (loading) {
+    return <h2 className="loading">Loading dashboard…</h2>;
+  }
+
+  if (error) {
+    return <h2 className="error">{error}</h2>;
+  }
+
+  /* ---------- Chart ---------- */
   const chartData = {
     labels: stats.monthlySales.map((m) => m.month),
     datasets: [
       {
         label: "Monthly Revenue (₹)",
         data: stats.monthlySales.map((m) => m.total),
-        backgroundColor: "#ff9800",
+        backgroundColor: "#ff7a00",
       },
     ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-    },
-    scales: {
-      y: {
-        ticks: {
-          callback: (value) => `₹${value}`,
-        },
-      },
-    },
   };
 
   return (
     <div className="admin-dashboard">
       <h1>Admin Dashboard</h1>
 
-      {/* -------- Stats Cards -------- */}
+      {/* ---------- Stats ---------- */}
       <div className="stats-grid">
         <div className="card">
           <h3>Orders</h3>
@@ -117,13 +123,18 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* -------- Monthly Sales Chart -------- */}
-      <div className="chart-card">
+      {/* ---------- Chart ---------- */}
+      <div className="chart-box">
         <h2>Monthly Sales</h2>
-        <Bar data={chartData} options={chartOptions} />
+
+        {stats.monthlySales.length === 0 ? (
+          <p className="empty">No sales data yet</p>
+        ) : (
+          <Bar data={chartData} />
+        )}
       </div>
 
-      {/* -------- Quick Links -------- */}
+      {/* ---------- Links ---------- */}
       <div className="admin-links">
         <Link to="/admin/products">Manage Products</Link>
         <Link to="/admin/orders">Manage Orders</Link>
@@ -134,6 +145,8 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
+
 
 
 

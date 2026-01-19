@@ -9,6 +9,7 @@ import AdminOrders from "./pages/AdminOrders";
 import AdminProducts from "./pages/AdminProducts";
 import AdminProductForm from "./pages/AdminProductForm";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails";
@@ -56,6 +57,14 @@ function App() {
   element={
     <ProtectedRoute adminOnly={true}>
       <AdminDashboard />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/users"
+  element={
+    <ProtectedRoute adminOnly={true}>
+      <AdminUsers/>
     </ProtectedRoute>
   }
 />
