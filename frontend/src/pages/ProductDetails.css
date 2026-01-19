@@ -1,52 +1,68 @@
-.product-container {
+.product-page {
   display: flex;
-  gap: 40px;
-  padding: 30px;
+  justify-content: center;
+  padding: 40px 20px;
 }
 
+/* CARD */
+.product-card {
+  max-width: 600px;
+  width: 100%;
+  background: white;
+  border-radius: 10px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* IMAGE — ORIGINAL SIZE, NO CROP */
 .product-image {
-  width: 420px;
-  height: 520px;
-  object-fit: cover;
-  border: 2px solid #eee;
+  width: 350px;           /* Same as home card size */
+  height: auto;          /* Keep aspect ratio */
+  object-fit: contain;  /* Never crop */
+  display: block;
+  margin: 0 auto 25px;
 }
 
-.product-info {
-  max-width: 500px;
-}
-
+/* INFO */
 .product-info h1 {
   margin-bottom: 10px;
 }
 
 .product-info h2 {
-  color: orange;
+  color: black;
+  margin-bottom: 10px;
 }
 
+/* DESCRIPTION — PURE BLACK */
 .description {
+  color: black;
   margin: 15px 0;
   line-height: 1.6;
 }
 
+/* STOCK */
 .stock {
   font-weight: bold;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   color: green;
 }
 
 .stock.out {
-  color: red;
+  color: rgb(224, 79, 79);
 }
 
+/* QTY */
 .qty-controls {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 25px;
 }
 
 .qty-controls button {
-  padding: 6px 14px;
+  padding: 8px 18px;
   font-size: 18px;
   background: black;
   color: white;
@@ -59,15 +75,32 @@
   cursor: not-allowed;
 }
 
+/* BUTTONS */
+.button-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
 .add-cart-btn {
-  padding: 12px 20px;
-  background: orange;
+  padding: 12px 24px;
+  background: rgb(255, 167, 3);
   border: none;
   font-size: 16px;
   cursor: pointer;
 }
 
-.add-cart-btn:disabled {
+.buy-btn {
+  padding: 12px 24px;
+  background: black;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.add-cart-btn:disabled,
+.buy-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
 }

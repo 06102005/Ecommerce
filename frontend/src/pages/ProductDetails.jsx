@@ -19,9 +19,7 @@ const ProductDetails = () => {
         const res = await fetch(`http://localhost:5000/api/products/${id}`);
         const data = await res.json();
 
-        if (!res.ok) {
-          throw new Error(data.message || "Failed to load product");
-        }
+        if (!res.ok) throw new Error(data.message || "Failed to load product");
 
         setProduct(data);
       } catch (err) {
@@ -54,10 +52,7 @@ const ProductDetails = () => {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Add to cart failed");
-      }
+      if (!res.ok) throw new Error(data.message);
 
       navigate("/cart");
     } catch (err) {
@@ -70,7 +65,6 @@ const ProductDetails = () => {
   if (!product) return <h2>Product not found</h2>;
 
   const stock = product.countInStock;
-
   const stockText =
     stock > 15
       ? "In stock"
@@ -79,57 +73,67 @@ const ProductDetails = () => {
       : "Out of stock";
 
   return (
-    <div className="product-container">
-      <img
-        src={`http://localhost:5000${product.image}`}
-        alt={product.name}
-        className="product-image"
-      />
+    <div className="product-page">
+      <div className="product-card">
+        {/* FULL IMAGE TOP */}
+        <img
+          src={`http://localhost:5000${product.image}`}
+          alt={product.name}
+          className="product-image"
+        />
 
-      <div className="product-info">
-        <h1>{product.name}</h1>
-        <h2>₹{product.price}</h2>
+        {/* PRODUCT INFO */}
+        <div className="product-info">
+          <h1>{product.name}</h1>
+          <h2>₹{product.price}</h2>
 
-        <p className="description">{product.description}</p>
+          <p className="description">{product.description}</p>
 
-        <p className={`stock ${stock === 0 ? "out" : ""}`}>
-          {stockText}
-        </p>
+          <p className={`stock ${stock === 0 ? "out" : ""}`}>
+            {stockText}
+          </p>
 
-        {stock > 0 && (
-          <div className="qty-controls">
+          {stock > 0 && (
+            <div className="qty-controls">
+              <button
+                onClick={() => setQty(qty - 1)}
+                disabled={qty <= 1}
+              >
+                −
+              </button>
+
+              <span>{qty}</span>
+
+              <button
+                onClick={() => setQty(qty + 1)}
+                disabled={qty >= stock}
+              >
+                +
+              </button>
+            </div>
+          )}
+
+          <div className="button-row">
             <button
-              onClick={() => setQty(qty - 1)}
-              disabled={qty <= 1}
+              className="add-cart-btn"
+              disabled={stock === 0}
+              onClick={addToCartHandler}
             >
-              −
+              Add to Cart
             </button>
 
-            <span>{qty}</span>
-
             <button
-              onClick={() => setQty(qty + 1)}
-              disabled={qty >= stock}
+              className="buy-btn"
+              disabled={stock === 0}
+              onClick={() => navigate("/checkout")}
             >
-              +
+              Buy Now
             </button>
           </div>
-        )}
-
-        <button
-          className="add-cart-btn"
-          disabled={stock === 0}
-          onClick={addToCartHandler}
-        >
-          Add to Cart
-        </button>
+        </div>
       </div>
     </div>
   );
 };
 
 export default ProductDetails;
-
-
-
-

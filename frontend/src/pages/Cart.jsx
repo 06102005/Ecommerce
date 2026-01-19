@@ -30,7 +30,7 @@ const Cart = () => {
           throw new Error(data.message || "Failed to load cart");
         }
 
-        setCartItems(data.filter(item => item.product));
+        setCartItems(data.filter((item) => item.product));
       } catch (err) {
         setError(err.message);
       }
@@ -55,7 +55,7 @@ const Cart = () => {
     );
 
     const data = await res.json();
-    setCartItems(data.filter(item => item.product));
+    setCartItems(data.filter((item) => item.product));
   };
 
   const removeItem = async (productId) => {
@@ -70,7 +70,7 @@ const Cart = () => {
     );
 
     const data = await res.json();
-    setCartItems(data.filter(item => item.product));
+    setCartItems(data.filter((item) => item.product));
   };
 
   const totalPrice = cartItems.reduce(
@@ -82,83 +82,86 @@ const Cart = () => {
 
   return (
     <div className="cart-container">
-      <h1>Your Cart</h1>
+      <div className="cart-box">
+        <h1>Your Cart</h1>
 
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty</p>
-      ) : (
-        <>
-          {cartItems.map(item => {
-            const stock = item.product.countInStock;
+        {cartItems.length === 0 ? (
+          <p>Your cart is empty</p>
+        ) : (
+          <>
+            {cartItems.map((item) => {
+              const stock = item.product.countInStock;
 
-            const stockText =
-              stock > 15
-                ? "Book yours soon"
-                : `${stock} left in stock`;
+              const stockText =
+                stock > 15
+                  ? "Book yours soon"
+                  : `${stock} left in stock`;
 
-            return (
-              <div key={item.product._id} className="cart-item">
-                <img
-                  src={`http://localhost:5000${item.product.image}`}
-                  alt={item.product.name}
-                />
+              return (
+                <div key={item.product._id} className="cart-item">
+                  <img
+                    src={`http://localhost:5000${item.product.image}`}
+                    alt={item.product.name}
+                  />
 
-                <div className="cart-details">
-                  <h3>{item.product.name}</h3>
-                  <p>₹{item.product.price}</p>
-                  <p className="stock">{stockText}</p>
+                  <div className="cart-details">
+                    <h3>{item.product.name}</h3>
+                    <p>₹{item.product.price}</p>
+                    <p className="stock">{stockText}</p>
 
-                  <div className="qty-controls">
-                    <button onClick={() =>
-                      updateQty(item.product._id, item.qty - 1)
-                    }>
-                      −
-                    </button>
+                    <div className="qty-controls">
+                      <button
+                        onClick={() =>
+                          updateQty(
+                            item.product._id,
+                            item.qty - 1
+                          )
+                        }
+                      >
+                        −
+                      </button>
 
-                    <span>{item.qty}</span>
+                      <span>{item.qty}</span>
+
+                      <button
+                        onClick={() =>
+                          updateQty(
+                            item.product._id,
+                            item.qty + 1
+                          )
+                        }
+                        disabled={item.qty >= stock}
+                      >
+                        +
+                      </button>
+                    </div>
 
                     <button
+                      className="remove-btn"
                       onClick={() =>
-                        updateQty(item.product._id, item.qty + 1)
+                        removeItem(item.product._id)
                       }
-                      disabled={item.qty >= stock}
                     >
-                      +
+                      Remove
                     </button>
                   </div>
-
-                  <button
-                    className="remove-btn"
-                    onClick={() => removeItem(item.product._id)}
-                  >
-                    Remove
-                  </button>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          <h2>Total: ₹{totalPrice}</h2>
+            <h2>Total: ₹{totalPrice}</h2>
 
-          <button
-            className="checkout-btn"
-            onClick={() => navigate("/checkout")}
-          >
-            Proceed to Checkout
-          </button>
-        </>
-      )}
+            <button
+              className="checkout-btn"
+              onClick={() => navigate("/checkout")}
+            >
+              Proceed to Checkout
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 };
 
 export default Cart;
-
-
-
-
-
-
-
-
-
