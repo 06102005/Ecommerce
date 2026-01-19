@@ -6,6 +6,9 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Cart from "./pages/Cart";
 import AdminOrders from "./pages/AdminOrders";
+import AdminProducts from "./pages/AdminProducts";
+import AdminProductForm from "./pages/AdminProductForm";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails";
@@ -40,6 +43,40 @@ function App() {
       </ProtectedRoute>
     }
   />
+  <Route
+  path="/admin/products"
+  element={
+    <ProtectedRoute adminOnly={true}>
+      <AdminProducts />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/dashboard"
+  element={
+    <ProtectedRoute adminOnly={true}>
+      <AdminDashboard />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/product/new"
+  element={
+    <ProtectedRoute adminOnly={true}>
+      <AdminProductForm />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/admin/product/:id/edit"
+  element={
+    <ProtectedRoute adminOnly={true}>
+      <AdminProductForm />
+    </ProtectedRoute>
+  }
+/>
+
 <Route path="/product/:id" element={<ProductDetails />} />
 
 <Route

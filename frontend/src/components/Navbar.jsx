@@ -24,8 +24,14 @@ const Navbar = () => {
         {user ? (
           <>
             {user.role === "admin" && (
-              <Link to="/admin/orders">Admin</Link>
+              <Link to="/admin/orders">Orders</Link>
             )}
+            {user?.role === "admin" && (
+  <Link to="/admin/products">Products</Link>
+)}
+           {user?.role === "admin" && (
+  <Link to="/admin/dashboard">Dashboard</Link>
+)}
             <button onClick={logoutHandler}>Logout</button>
           </>
         ) : (

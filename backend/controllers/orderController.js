@@ -82,8 +82,23 @@ const getMyOrders = async (req, res) => {
 // @route  GET /api/orders
 // @access Admin
 const getAllOrders = async (req, res) => {
-  const orders = await Order.find().populate("user", "name email");
-  res.json(orders);
+  try {
+    const filter = {};
+
+    if (req.query.paid === "true") filter.isPaid = true;
+    if (req.query.paid === "false") filter.isPaid = false;
+
+    if (req.query.delivered === "true") filter.isDelivered = true;
+    if (req.query.delivered === "false") filter.isDelivered = false;
+
+    const orders = await Order.find(filter)
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // @desc   Update order to paid

@@ -12,6 +12,7 @@ const cartRoutes = require("./routes/cartRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const refundRoutes = require("./routes/refundRoutes");
 const webhookRoutes = require("./routes/webhookRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const { protect } = require("./middleware/authMiddleware");
 const { razorpayWebhook} = require("./controllers/webhookController");
@@ -37,6 +38,7 @@ app.use(express.json());
 
 /* Routes */
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
