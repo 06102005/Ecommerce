@@ -14,6 +14,8 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails";
 import Checkout from "./pages/checkout";
+import Wishlist from "./pages/Wishlist";
+import MyOrders from "./pages/MyOrders";
 import Order from "./pages/Order";
 
 function App() {
@@ -95,7 +97,11 @@ function App() {
       <Checkout />
     </ProtectedRoute>
   }
-/>
+/> 
+
+<Route path="/wishlist" element={<Wishlist />} />
+<Route path="/my-orders" element={<MyOrders />} />
+
 <Route
   path="/order/:id"
   element={

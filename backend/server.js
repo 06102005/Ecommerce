@@ -13,6 +13,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const refundRoutes = require("./routes/refundRoutes");
 const webhookRoutes = require("./routes/webhookRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const wishlistRoutes = require("./routes/wishlistRoutes.js");
 
 const { protect } = require("./middleware/authMiddleware");
 const { razorpayWebhook} = require("./controllers/webhookController");
@@ -44,6 +45,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/refund", refundRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 app.get("/", (req, res) => {

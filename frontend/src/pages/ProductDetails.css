@@ -2,29 +2,41 @@
   display: flex;
   justify-content: center;
   padding: 40px 20px;
+  background: #f9f9f9;
 }
 
 /* CARD */
 .product-card {
-  max-width: 550px;
   width: 100%;
-  background: white;
+  max-width: 600px;
+  background: #fff;
   border-radius: 10px;
   padding: 25px;
-  text-align: center;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* IMAGE — SMALLER & ADJUSTABLE */
-.product-image {
-  width: 220px;        /* 👈 adjust here */
-  height: 220px;       /* 👈 adjust here */
-  object-fit: contain;
-  display: block;
+/* IMAGE FIX — NEVER STRETCH */
+.image-box {
+  width: 100%;
+  max-width: 260px;
+  height: 260px;
   margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 /* INFO */
+.product-info {
+  text-align: center;
+}
+
 .product-info h1 {
   margin-bottom: 8px;
 }
@@ -34,26 +46,17 @@
   margin-bottom: 10px;
 }
 
-/* DESCRIPTION — FORCE BLACK */
-.product-info .description {
-  color: #000 !important;
+.description {
+  color: #000;
   margin: 15px 0;
-  line-height: 1.6;
   font-size: 15px;
+  line-height: 1.6;
 }
 
-/* STOCK COLORS */
+/* STOCK */
 .stock {
   font-weight: bold;
-  margin-bottom: 20px;
-}
-
-.stock.in {
-  color: green;
-}
-
-.stock.low {
-  color: red;
+  margin-bottom: 15px;
 }
 
 .stock.out {
@@ -64,52 +67,75 @@
 .qty-controls {
   display: flex;
   justify-content: center;
-  align-items: center;
   gap: 15px;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 .qty-controls button {
-  padding: 8px 18px;
+  padding: 8px 16px;
   font-size: 18px;
-  background: black;
-  color: white;
+  background: #000;
+  color: #fff;
   border: none;
   cursor: pointer;
-}
-
-.qty-controls button:disabled {
-  background: #aaa;
-  cursor: not-allowed;
 }
 
 /* BUTTONS */
 .button-row {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 15px;
+  margin-bottom: 15px;
 }
 
 .add-cart-btn {
-  padding: 12px 24px;
-  background: rgb(255, 167, 3);
+  background: #ffa703;
   border: none;
-  font-size: 16px;
+  padding: 12px 22px;
   cursor: pointer;
 }
 
 .buy-btn {
-  padding: 12px 24px;
-  background: black;
-  color: white;
+  background: #000;
+  color: #fff;
   border: none;
-  font-size: 16px;
+  padding: 12px 22px;
   cursor: pointer;
 }
 
-.add-cart-btn:disabled,
-.buy-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
+/* WISHLIST */
+.wishlist-btn {
+  background: transparent;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  color: #ff0055;
 }
+
+.wishlist-btn.active {
+  font-weight: bold;
+}
+
+/* STATES */
+.status {
+  text-align: center;
+  padding: 40px;
+}
+
+.status.error {
+  color: red;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 600px) {
+  .image-box {
+    max-width: 200px;
+    height: 200px;
+  }
+
+  .button-row {
+    flex-direction: column;
+  }
+}
+
 
