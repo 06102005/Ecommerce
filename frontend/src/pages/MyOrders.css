@@ -94,6 +94,29 @@
   color: red;
 }
 
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.pagination button {
+  padding: 6px 14px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ---------- Mobile Responsive ---------- */
 @media (max-width: 768px) {
   .orders-table,
@@ -125,5 +148,11 @@
     content: attr(data-label);
     font-weight: bold;
   }
+
+  .pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
 }
+
 

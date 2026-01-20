@@ -1,5 +1,5 @@
 .checkout-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: auto;
   padding: 20px;
   background: #fff;
@@ -8,45 +8,72 @@
 .checkout-container h1 {
   color: #ff7a00;
   text-align: center;
+  margin-bottom: 20px;
 }
 
 .checkout-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .checkout-form h2 {
   margin-top: 20px;
-  color: #000;
   border-bottom: 2px solid #ff7a00;
-  padding-bottom: 5px;
+  padding-bottom: 6px;
 }
 
 .checkout-form input {
   padding: 10px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
-.checkout-form input:focus {
-  outline: none;
-  border-color: #ff7a00;
+.row {
+  display: flex;
+  gap: 10px;
 }
 
 .radio {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 500;
+}
+
+.radio.disabled {
+  opacity: 0.5;
 }
 
 .summary-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.summary-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+}
+
+.price-box {
+  margin-top: 10px;
+}
+
+.price-box div {
   display: flex;
   justify-content: space-between;
-  background: #f9f9f9;
-  padding: 8px;
-  border-radius: 4px;
+  padding: 6px 0;
+}
+
+.price-box .total {
+  font-weight: bold;
+  border-top: 1px solid #ccc;
+  padding-top: 10px;
 }
 
 .place-order-btn {
@@ -56,19 +83,38 @@
   color: #fff;
   border: none;
   font-size: 16px;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 4px;
 }
 
-.place-order-btn:hover {
-  background: #e66a00;
+.place-order-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.loading {
-  text-align: center;
-}
-
+.loading,
 .error {
-  color: red;
   text-align: center;
 }
+
+.empty-checkout {
+  text-align: center;
+  padding: 60px;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+  }
+
+  .summary-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .summary-item img {
+    margin: auto;
+  }
+}
+

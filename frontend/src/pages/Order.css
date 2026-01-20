@@ -1,81 +1,134 @@
 .order-container {
   max-width: 900px;
   margin: auto;
-  padding: 20px;
+  padding: 30px 20px;
   background: #fff;
 }
 
 .order-container h1 {
   text-align: center;
   color: #ff7a00;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
+/* Boxes */
 .order-box {
-  border: 1px solid #ddd;
-  padding: 15px;
-  margin-bottom: 20px;
-  border-radius: 6px;
   background: #fafafa;
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .order-box h2 {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   border-bottom: 2px solid #ff7a00;
-  padding-bottom: 5px;
+  padding-bottom: 6px;
 }
 
+/* Status */
+.status-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.status {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.status.paid {
+  background: #d4f8e8;
+  color: #0a8f55;
+}
+
+.status.delivered {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.status.pending {
+  background: #ffe0b2;
+  color: #ef6c00;
+}
+
+/* Items */
 .order-item {
   display: flex;
   gap: 15px;
   margin-bottom: 15px;
+  padding-bottom: 15px;
   border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
 }
 
 .order-item img {
-  width: 100px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 4px;
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  border-radius: 6px;
   border: 1px solid #ccc;
+  background: #fff;
 }
 
 .order-item-info {
   flex: 1;
 }
 
-.order-item-info .name {
+.product-link {
   font-weight: bold;
   color: #000;
+  text-decoration: none;
+}
+
+.product-link:hover {
+  color: #ff7a00;
 }
 
 .item-total {
   font-weight: bold;
   color: #ff7a00;
+  margin-top: 5px;
 }
 
+/* Total */
 .order-total {
   text-align: right;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
+  margin-top: 20px;
 }
 
-.paid {
-  color: green;
-  font-weight: bold;
-}
-
-.not-paid {
-  color: red;
-  font-weight: bold;
-}
-
-.loading {
+/* States */
+.loading,
+.error {
   text-align: center;
+  margin-top: 50px;
 }
 
 .error {
-  text-align: center;
   color: red;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+  .order-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .order-item img {
+    width: 100%;
+    height: auto;
+  }
+
+  .status-row {
+    flex-wrap: wrap;
+  }
+
+  .order-total {
+    text-align: center;
+  }
 }

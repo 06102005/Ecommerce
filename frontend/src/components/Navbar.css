@@ -1,13 +1,15 @@
 /* Navbar */
 .navbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 14px 20px;
   background: #000;
   color: #fff;
+  position: relative;
 }
 
+/* Logo */
 .logo {
   font-size: 22px;
   font-weight: bold;
@@ -15,7 +17,7 @@
   text-decoration: none;
 }
 
-/* Links */
+/* Right menu */
 .nav-right {
   display: flex;
   align-items: center;
@@ -64,12 +66,37 @@
   background: #e66a00;
 }
 
-/* ---------- Responsive ---------- */
+/* Hamburger */
+.hamburger {
+  display: none;
+  font-size: 24px;
+  background: none;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+/* ---------- MOBILE ---------- */
 @media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
   .nav-right {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    background: #000;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 0;
+    display: none;
+  }
+
+  .nav-right.open {
+    display: flex;
   }
 
   .badge {
@@ -77,6 +104,7 @@
     right: -8px;
   }
 }
+
 
 
 

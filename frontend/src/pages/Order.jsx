@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Order.css";
 
@@ -12,6 +12,8 @@ const Order = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!user?.token) return;
+
     const fetchOrder = async () => {
       try {
         const res = await fetch(
@@ -24,7 +26,7 @@ const Order = () => {
         );
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load order");
+        if (!res.ok) throw new Error(data.message);
 
         setOrder(data);
       } catch (err) {
@@ -37,9 +39,9 @@ const Order = () => {
     fetchOrder();
   }, [id, user]);
 
-  if (loading) return <h2 className="loading">Loading order...</h2>;
+  if (loading) return <h2 className="loading">Loading order…</h2>;
   if (error) return <h2 className="error">{error}</h2>;
-  if (!order) return <h2>Order not found</h2>;
+  if (!order) return <h2 className="error">Order not found</h2>;
 
   return (
     <div className="order-container">
@@ -47,61 +49,69 @@ const Order = () => {
 
       <div className="order-box">
         <p><strong>Order ID:</strong> {order._id}</p>
+        <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
         <p><strong>Payment Method:</strong> {order.paymentMethod}</p>
-        <p>
-          <strong>Status:</strong>{" "}
-          <span className={order.isPaid ? "paid" : "not-paid"}>
+
+        <div className="status-row">
+          <span className={`status ${order.isPaid ? "paid" : "pending"}`}>
             {order.isPaid ? "Paid" : "Not Paid"}
           </span>
-        </p>
+          <span className={`status ${order.isDelivered ? "delivered" : "pending"}`}>
+            {order.isDelivered ? "Delivered" : "Not Delivered"}
+          </span>
+        </div>
       </div>
 
       <div className="order-box">
         <h2>Shipping Address</h2>
         <p>{order.shippingAddress.address}</p>
-        <p>
-          {order.shippingAddress.city},{" "}
-          {order.shippingAddress.postalCode}
-        </p>
+        <p>{order.shippingAddress.city}, {order.shippingAddress.postalCode}</p>
         <p>{order.shippingAddress.country}</p>
       </div>
 
       <div className="order-box">
         <h2>Order Items</h2>
 
-        {order.orderItems.map((item, index) => (
-          <div key={index} className="order-item">
-            <img
-              src={
-                item.image
-                  ? `http://localhost:5000${item.image}`
-                  : "/placeholder.png"
-              }
-              alt={item.name}
-              onError={(e) => {
-                e.target.src = "/placeholder.png";
-              }}
-            />
+        {order.orderItems.map((item) => {
+          const product = item.product || {};
 
-            <div className="order-item-info">
-              <p className="name">{item.name}</p>
-              <p>
-                {item.qty} × ₹{item.price}
-              </p>
-              <p className="item-total">
-                ₹{item.qty * item.price}
-              </p>
+          return (
+            <div key={item._id} className="order-item">
+              <img
+                src={
+                  product.image
+                    ? `http://localhost:5000${product.image}`
+                    : "/placeholder.png"
+                }
+                alt={product.name || "Product"}
+                onError={(e) => (e.target.src = "/placeholder.png")}
+              />
+
+              <div className="order-item-info">
+                {product._id ? (
+                  <Link to={`/product/${product._id}`} className="product-link">
+                    {product.name}
+                  </Link>
+                ) : (
+                  <p className="product-link">Product unavailable</p>
+                )}
+
+                <p>{item.qty} × ₹{item.price}</p>
+                <p className="item-total">₹{item.qty * item.price}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="order-total">
-        <h2>Total: ₹{order.totalPrice}</h2>
+        Total: ₹{order.totalPrice}
       </div>
     </div>
   );
 };
 
 export default Order;
+
+
 

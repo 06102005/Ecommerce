@@ -9,8 +9,9 @@ const Navbar = () => {
 
   const [wishlistCount, setWishlistCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  /* ---------------- Fetch Counts ---------------- */
+  /* ---------------- Fetch Badge Counts ---------------- */
   useEffect(() => {
     if (!user?.token) {
       setWishlistCount(0);
@@ -20,13 +21,10 @@ const Navbar = () => {
 
     const fetchCounts = async () => {
       try {
-        /* Wishlist */
         const wishlistRes = await fetch(
           "http://localhost:5000/api/wishlist",
           {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
+            headers: { Authorization: `Bearer ${user.token}` },
           }
         );
 
@@ -35,13 +33,10 @@ const Navbar = () => {
           setWishlistCount(wishlistData.length || 0);
         }
 
-        /* My Orders */
         const ordersRes = await fetch(
           "http://localhost:5000/api/orders/myorders",
           {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
+            headers: { Authorization: `Bearer ${user.token}` },
           }
         );
 
@@ -64,32 +59,53 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
-      <div className="nav-left">
-        <Link to="/" className="logo">
-          ShopX
-        </Link>
-      </div>
+      {/* LEFT */}
+      <Link to="/" className="logo">
+        ShopX
+      </Link>
 
-      <div className="nav-right">
-        <Link to="/">Home</Link>
+      {/* HAMBURGER */}
+      <button
+        className="hamburger"
+        onClick={() => setMenuOpen(!menuOpen)}
+        aria-label="Toggle menu"
+      >
+        ☰
+      </button>
+
+      {/* RIGHT */}
+      <div className={`nav-right ${menuOpen ? "open" : ""}`}>
+        <Link to="/" onClick={() => setMenuOpen(false)}>
+          Home
+        </Link>
 
         {user && (
           <>
-            <Link to="/wishlist" className="badge-link">
+            <Link
+              to="/wishlist"
+              className="badge-link"
+              onClick={() => setMenuOpen(false)}
+            >
               Wishlist
               {wishlistCount > 0 && (
                 <span className="badge">{wishlistCount}</span>
               )}
             </Link>
 
-            <Link to="/myorders" className="badge-link">
+            <Link
+              to="/my-orders"
+              className="badge-link"
+              onClick={() => setMenuOpen(false)}
+            >
               My Orders
               {orderCount > 0 && (
                 <span className="badge">{orderCount}</span>
               )}
             </Link>
 
-            <Link to="/cart">Cart</Link>
+            <Link to="/cart" onClick={() => setMenuOpen(false)}>
+              Cart
+            </Link>
           </>
         )}
 
@@ -117,6 +133,7 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
 
 
 

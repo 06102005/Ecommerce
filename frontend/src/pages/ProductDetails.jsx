@@ -10,21 +10,17 @@ const ProductDetails = () => {
 
   const [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
-  const [inWishlist, setInWishlist] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [wishlisted, setWishlisted] = useState(false);
 
-  /* ---------- Fetch Product ---------- */
+  /* ---------- FETCH PRODUCT ---------- */
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:5000/api/products/${id}`
-        );
+        const res = await fetch(`http://localhost:5000/api/products/${id}`);
         const data = await res.json();
-
         if (!res.ok) throw new Error(data.message);
-
         setProduct(data);
       } catch (err) {
         setError(err.message);
@@ -32,93 +28,91 @@ const ProductDetails = () => {
         setLoading(false);
       }
     };
-
     fetchProduct();
   }, [id]);
 
-  /* ---------- Check Wishlist ---------- */
+  /* ---------- CHECK WISHLIST ---------- */
   useEffect(() => {
-    if (!user?.token || !product?._id) return;
+    if (!user?.token) return;
 
     const checkWishlist = async () => {
-      const res = await fetch("http://localhost:5000/api/wishlist", {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
-      if (res.ok) {
+      try {
+        const res = await fetch("http://localhost:5000/api/wishlist", {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
         const data = await res.json();
-        setInWishlist(data.some((p) => p._id === product._id));
-      }
+        setWishlisted(data.some((p) => p._id === id));
+      } catch {}
     };
 
     checkWishlist();
-  }, [user, product]);
+  }, [id, user]);
 
-  /* ---------- Wishlist Toggle ---------- */
-  const wishlistHandler = async () => {
-    if (!user) {
+  /* ---------- WISHLIST ---------- */
+  const toggleWishlist = async () => {
+    if (!user?.token) {
       navigate("/login");
       return;
     }
 
-    const method = inWishlist ? "DELETE" : "POST";
+    const url = `http://localhost:5000/api/wishlist/${product._id}`;
 
-    const res = await fetch("http://localhost:5000/api/wishlist", {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({ productId: product._id }),
+    const res = await fetch(url, {
+      method: wishlisted ? "DELETE" : "POST",
+      headers: { Authorization: `Bearer ${user.token}` },
     });
 
-    if (res.ok) setInWishlist(!inWishlist);
+    if (res.ok) setWishlisted(!wishlisted);
   };
 
-  /* ---------- Add to Cart ---------- */
+  /* ---------- CART ---------- */
   const addToCartHandler = async () => {
-    if (!user) {
+    if (!user?.token) {
       navigate("/login");
       return;
     }
 
-    const res = await fetch("http://localhost:5000/api/cart", {
+    await fetch("http://localhost:5000/api/cart", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${user.token}`,
       },
-      body: JSON.stringify({
-        productId: product._id,
-        qty,
-      }),
+      body: JSON.stringify({ productId: product._id, qty }),
     });
 
-    if (res.ok) navigate("/cart");
+    navigate("/cart");
   };
 
-  /* ---------- Buy Now ---------- */
-  const buyNowHandler = async () => {
-    await addToCartHandler();
-    navigate("/checkout");
-  };
+  if (loading) return <h2>Loading...</h2>;
+  if (error) return <h2>{error}</h2>;
+  if (!product) return null;
 
-  if (loading) return <h2 className="status">Loading product…</h2>;
-  if (error) return <h2 className="status error">{error}</h2>;
-
-  const stock = product.countInStock;
+  const stockText =
+    product.countInStock > 0
+      ? `${product.countInStock} in stock`
+      : "Out of stock";
 
   return (
     <div className="product-page">
       <div className="product-card">
-        {/* IMAGE WRAPPER (FIXED SIZE) */}
-        <div className="image-box">
+        {/* IMAGE */}
+        <div className="image-container">
           <img
             src={`http://localhost:5000${product.image}`}
             alt={product.name}
+            className="product-image"
           />
+        </div>
+
+        {/* HEART BELOW IMAGE */}
+        <div className="wishlist-row">
+          <button
+            className={`wishlist-heart ${wishlisted ? "active" : ""}`}
+            onClick={toggleWishlist}
+          >
+            ♥
+          </button>
         </div>
 
         {/* INFO */}
@@ -128,22 +122,23 @@ const ProductDetails = () => {
 
           <p className="description">{product.description}</p>
 
-          <p className={`stock ${stock === 0 ? "out" : ""}`}>
-            {stock > 0 ? `${stock} in stock` : "Out of stock"}
+          <p
+            className={`stock ${
+              product.countInStock === 0 ? "out" : "in"
+            }`}
+          >
+            {stockText}
           </p>
 
-          {stock > 0 && (
+          {product.countInStock > 0 && (
             <div className="qty-controls">
-              <button
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-              >
+              <button onClick={() => setQty(qty - 1)} disabled={qty <= 1}>
                 −
               </button>
               <span>{qty}</span>
               <button
-                onClick={() =>
-                  setQty((q) => Math.min(stock, q + 1))
-                }
+                onClick={() => setQty(qty + 1)}
+                disabled={qty >= product.countInStock}
               >
                 +
               </button>
@@ -153,7 +148,7 @@ const ProductDetails = () => {
           <div className="button-row">
             <button
               className="add-cart-btn"
-              disabled={stock === 0}
+              disabled={product.countInStock === 0}
               onClick={addToCartHandler}
             >
               Add to Cart
@@ -161,19 +156,12 @@ const ProductDetails = () => {
 
             <button
               className="buy-btn"
-              disabled={stock === 0}
-              onClick={buyNowHandler}
+              disabled={product.countInStock === 0}
+              onClick={() => navigate("/checkout")}
             >
               Buy Now
             </button>
           </div>
-
-          <button
-            className={`wishlist-btn ${inWishlist ? "active" : ""}`}
-            onClick={wishlistHandler}
-          >
-            {inWishlist ? "♥ Remove from Wishlist" : "♡ Add to Wishlist"}
-          </button>
         </div>
       </div>
     </div>
@@ -181,4 +169,6 @@ const ProductDetails = () => {
 };
 
 export default ProductDetails;
+
+
 
