@@ -17,6 +17,7 @@ const AdminProducts = () => {
   const [form, setForm] = useState({
     name: "",
     price: "",
+    stock: "",
     image: null,
     description: "",
   });
@@ -45,7 +46,7 @@ const AdminProducts = () => {
 
     const formData = new FormData();
     Object.entries(form).forEach(([k, v]) => {
-      if (v) formData.append(k, v);
+      if (v !== null && v !== "") formData.append(k, v);
     });
 
     const url = editingId
@@ -59,7 +60,7 @@ const AdminProducts = () => {
     });
 
     const data = await res.json();
-    if (!res.ok) return alert(data.message);
+    if (!res.ok) return alert(data.message || "Request failed");
 
     resetForm();
     fetchProducts();
@@ -83,6 +84,7 @@ const AdminProducts = () => {
     setForm({
       name: p.name,
       price: p.price,
+      stock: p.stock,
       image: null,
       description: p.description,
     });
@@ -92,7 +94,13 @@ const AdminProducts = () => {
 
   const resetForm = () => {
     setEditingId(null);
-    setForm({ name: "", price: "", image: null, description: "" });
+    setForm({
+      name: "",
+      price: "",
+      stock: "",
+      image: null,
+      description: "",
+    });
     setPreview(null);
   };
 
@@ -142,10 +150,19 @@ const AdminProducts = () => {
         />
 
         <input
+          type="number"
+          placeholder="Stock Quantity"
+          required
+          value={form.stock}
+          onChange={(e) => setForm({ ...form, stock: e.target.value })}
+        />
+
+        <input
           type="file"
           accept="image/*"
           onChange={(e) => {
             const file = e.target.files[0];
+            if (!file) return;
             setForm({ ...form, image: file });
             setPreview(URL.createObjectURL(file));
           }}
@@ -187,6 +204,7 @@ const AdminProducts = () => {
                 <th>Image</th>
                 <th>Name</th>
                 <th>Price</th>
+                <th>Stock</th>
                 <th />
               </tr>
             </thead>
@@ -202,7 +220,20 @@ const AdminProducts = () => {
                   <td>{p.name}</td>
                   <td>₹{p.price}</td>
                   <td>
-                    <button onClick={() => editHandler(p)}>Edit</button>
+                    {p.stock > 0 ? (
+                      <span className="in-stock">
+                        In Stock ({p.stock})
+                      </span>
+                    ) : (
+                      <span className="out-stock">
+                        Out of Stock
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <button onClick={() => editHandler(p)}>
+                      Edit
+                    </button>
                     <button
                       className="danger"
                       onClick={() => deleteHandler(p._id)}
@@ -217,7 +248,10 @@ const AdminProducts = () => {
 
           {/* Pagination */}
           <div className="pagination">
-            <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
               Prev
             </button>
             <span>
@@ -237,6 +271,3 @@ const AdminProducts = () => {
 };
 
 export default AdminProducts;
-
-
-
