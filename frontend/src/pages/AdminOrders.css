@@ -9,44 +9,6 @@
   margin-bottom: 20px;
 }
 
-/* ---------- Filters ---------- */
-.filters {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-.filters button {
-  background: #000;
-  color: #fff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.filters button.active,
-.filters button:hover {
-  background: #ff7a00;
-}
-
-/* ---------- Bulk ---------- */
-.bulk-actions {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-  align-items: center;
-}
-
-.bulk-actions button {
-  background: #ff7a00;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 /* ---------- Table ---------- */
 table {
   width: 100%;
@@ -73,6 +35,7 @@ tbody td {
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 13px;
+  font-weight: 600;
 }
 
 .status.paid {
@@ -85,18 +48,59 @@ tbody td {
   color: #000;
 }
 
+.status.processing {
+  background: #17a2b8;
+  color: #fff;
+}
+
+.status.shipped {
+  background: #6f42c1;
+  color: #fff;
+}
+
 .status.delivered {
   background: #007bff;
   color: #fff;
 }
 
 /* ---------- Buttons ---------- */
+.status-btn {
+  background: #ff7a00;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.status-btn:hover {
+  opacity: 0.9;
+}
+
 .view-btn {
   text-decoration: none;
   background: #555;
   color: #fff;
   padding: 5px 10px;
   border-radius: 4px;
+}
+
+.done {
+  color: #28a745;
+  font-size: 18px;
+}
+
+.invoice-btn {
+  padding: 6px 10px;
+  background: #ff7a00;
+  color: #fff;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.invoice-btn:hover {
+  background: #e36b00;
 }
 
 /* ---------- Pagination ---------- */
@@ -141,12 +145,8 @@ tbody td {
     justify-content: space-between;
     padding: 6px;
   }
-
-  tbody td::before {
-    content: attr(data-label);
-    font-weight: bold;
-  }
 }
+
 
 
 

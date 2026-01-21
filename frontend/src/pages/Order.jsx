@@ -16,14 +16,11 @@ const Order = () => {
 
     const fetchOrder = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:5000/api/orders/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
+        const res = await fetch(`http://localhost:5000/api/orders/${id}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.message);
@@ -50,58 +47,63 @@ const Order = () => {
       <div className="order-box">
         <p><strong>Order ID:</strong> {order._id}</p>
         <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
-        <p><strong>Payment Method:</strong> {order.paymentMethod}</p>
+        <p><strong>Payment:</strong> {order.paymentMethod}</p>
 
         <div className="status-row">
           <span className={`status ${order.isPaid ? "paid" : "pending"}`}>
             {order.isPaid ? "Paid" : "Not Paid"}
           </span>
-          <span className={`status ${order.isDelivered ? "delivered" : "pending"}`}>
-            {order.isDelivered ? "Delivered" : "Not Delivered"}
-          </span>
+          <span
+  className={`status ${
+    order.orderStatus === "Delivered" ? "delivered" : "pending"
+  }`}
+>
+  {order.orderStatus === "Delivered"
+    ? "Delivered"
+    : "Not Delivered"}
+</span>
+
         </div>
       </div>
 
       <div className="order-box">
         <h2>Shipping Address</h2>
         <p>{order.shippingAddress.address}</p>
-        <p>{order.shippingAddress.city}, {order.shippingAddress.postalCode}</p>
+        <p>
+          {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+        </p>
         <p>{order.shippingAddress.country}</p>
       </div>
 
       <div className="order-box">
         <h2>Order Items</h2>
 
-        {order.orderItems.map((item) => {
-          const product = item.product || {};
+        {order.orderItems.map((item) => (
+          <div key={item._id} className="order-item">
+            <img
+              src={
+                item.image
+                  ? `http://localhost:5000${item.image}`
+                  : "/placeholder.png"
+              }
+              alt={item.name}
+              onError={(e) => (e.target.src = "/placeholder.png")}
+            />
 
-          return (
-            <div key={item._id} className="order-item">
-              <img
-                src={
-                  product.image
-                    ? `http://localhost:5000${product.image}`
-                    : "/placeholder.png"
-                }
-                alt={product.name || "Product"}
-                onError={(e) => (e.target.src = "/placeholder.png")}
-              />
+            <div className="order-item-info">
+              {item.product ? (
+                <Link to={`/product/${item.product}`} className="product-link">
+                  {item.name}
+                </Link>
+              ) : (
+                <span className="product-link disabled">Product unavailable</span>
+              )}
 
-              <div className="order-item-info">
-                {product._id ? (
-                  <Link to={`/product/${product._id}`} className="product-link">
-                    {product.name}
-                  </Link>
-                ) : (
-                  <p className="product-link">Product unavailable</p>
-                )}
-
-                <p>{item.qty} × ₹{item.price}</p>
-                <p className="item-total">₹{item.qty * item.price}</p>
-              </div>
+              <p>{item.qty} × ₹{item.price}</p>
+              <p className="item-total">₹{item.qty * item.price}</p>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
       <div className="order-total">

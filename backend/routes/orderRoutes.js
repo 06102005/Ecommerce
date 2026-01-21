@@ -7,29 +7,34 @@ const {
   getAllOrders,
   getOrderById,
   updateOrderToPaid,
-  updateOrderToDelivered,
+  updateOrderStatus,
 } = require("../controllers/orderController");
 
 const { cancelOrder } = require("../controllers/cancelController");
-
 const { refundOrder } = require("../controllers/refundController");
+
 
 const { protect, admin } = require("../middleware/authMiddleware");
 
-// Orders
+/* ---------------- ORDERS ---------------- */
 router.post("/", protect, createOrder);
 router.get("/myorders", protect, getMyOrders);
 router.get("/", protect, admin, getAllOrders);
 router.get("/:id", protect, getOrderById);
 
-// Payment & delivery
+/* ---------------- PAYMENT ---------------- */
 router.put("/:id/pay", protect, admin, updateOrderToPaid);
-router.put("/:id/deliver", protect, admin, updateOrderToDelivered);
 
-// Cancellation & refund
+/* ---------------- DELIVERY (ADMIN) ---------------- */
+router.put("/:id/status", protect, admin, updateOrderStatus);
+
+/* ---------------- CANCELLATION & REFUND ---------------- */
 router.put("/:id/cancel", protect, cancelOrder);
 router.put("/:id/refund", protect, admin, refundOrder);
 
+
+
 module.exports = router;
+
 
 

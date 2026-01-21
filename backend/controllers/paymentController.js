@@ -38,7 +38,7 @@ const verifyPayment = async (req, res) => {
     orderId, // your MongoDB Order _id
   } = req.body;
 
-  // Step 1: Create expected signature
+  // Create expected signature
   const body = razorpay_order_id + "|" + razorpay_payment_id;
 
   const expectedSignature = crypto
@@ -46,12 +46,12 @@ const verifyPayment = async (req, res) => {
     .update(body)
     .digest("hex");
 
-  // Step 2: Compare signatures
+  //  Compare signatures
   if (expectedSignature !== razorpay_signature) {
     return res.status(400).json({ message: "Payment verification failed" });
   }
 
-  // Step 3: Update order
+  //  Update order
   const order = await Order.findById(orderId);
 
   if (!order) {
