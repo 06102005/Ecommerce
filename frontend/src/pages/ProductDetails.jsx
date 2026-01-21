@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useBuyNow } from "../context/BuyNowContext";
 import "./ProductDetails.css";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { setBuyNowItem } = useBuyNow();
 
   const [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
@@ -84,6 +86,20 @@ const ProductDetails = () => {
     navigate("/cart");
   };
 
+  const buyNowHandler = () => {
+    if (!user?.token) {
+      navigate("/login");
+      return;
+    }
+
+    setBuyNowItem({
+      product,
+      qty,
+    });
+
+    navigate("/checkout");
+  };
+
   if (loading) return <h2>Loading...</h2>;
   if (error) return <h2>{error}</h2>;
   if (!product) return null;
@@ -157,7 +173,7 @@ const ProductDetails = () => {
             <button
               className="buy-btn"
               disabled={product.countInStock === 0}
-              onClick={() => navigate("/checkout")}
+              onClick={buyNowHandler}
             >
               Buy Now
             </button>

@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useBuyNow } from "../context/BuyNowContext";
 import { useNavigate } from "react-router-dom";
 import "./Checkout.css";
 
 const Checkout = () => {
   const { user } = useAuth();
+  const { buyNowItem, setBuyNowItem } = useBuyNow();
   const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState([]);
@@ -20,10 +22,15 @@ const Checkout = () => {
       : { address: "", city: "", postalCode: "", country: "" };
   });
 
-  /* ---------------- Fetch Cart ---------------- */
+  /* ---------------- Fetch Cart (ONLY if NOT Buy Now) ---------------- */
   useEffect(() => {
     if (!user?.token) {
       navigate("/login");
+      return;
+    }
+
+    if (buyNowItem) {
+      setLoading(false);
       return;
     }
 
@@ -48,17 +55,27 @@ const Checkout = () => {
     };
 
     fetchCart();
-  }, [user, navigate]);
+  }, [user, buyNowItem, navigate]);
 
   /* ---------------- Persist Address ---------------- */
   useEffect(() => {
-    localStorage.setItem(
-      "shippingAddress",
-      JSON.stringify(shippingAddress)
-    );
+    localStorage.setItem("shippingAddress", JSON.stringify(shippingAddress));
   }, [shippingAddress]);
 
-  const itemsPrice = cartItems.reduce(
+  /* ---------------- Source of Truth ---------------- */
+  const checkoutItems = useMemo(() => {
+    if (buyNowItem) {
+      return [
+        {
+          product: buyNowItem.product,
+          qty: buyNowItem.qty,
+        },
+      ];
+    }
+    return cartItems;
+  }, [buyNowItem, cartItems]);
+
+  const itemsPrice = checkoutItems.reduce(
     (sum, item) => sum + item.product.price * item.qty,
     0
   );
@@ -70,7 +87,7 @@ const Checkout = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    if (cartItems.length === 0) return;
+    if (checkoutItems.length === 0) return;
 
     setPlacingOrder(true);
 
@@ -82,7 +99,7 @@ const Checkout = () => {
           Authorization: `Bearer ${user.token}`,
         },
         body: JSON.stringify({
-          orderItems: cartItems.map((item) => ({
+          orderItems: checkoutItems.map((item) => ({
             product: item.product._id,
             qty: item.qty,
           })),
@@ -96,6 +113,7 @@ const Checkout = () => {
       if (!res.ok) throw new Error(order.message || "Order failed");
 
       localStorage.removeItem("shippingAddress");
+      setBuyNowItem(null); // ✅ CRITICAL
       navigate(`/order/${order._id}`);
     } catch (err) {
       alert(err.message);
@@ -104,10 +122,11 @@ const Checkout = () => {
     }
   };
 
+  /* ---------------- UI STATES ---------------- */
   if (loading) return <h2 className="loading">Loading checkout…</h2>;
   if (error) return <h2 className="error">{error}</h2>;
 
-  if (cartItems.length === 0)
+  if (checkoutItems.length === 0)
     return (
       <div className="empty-checkout">
         <h2>Your cart is empty</h2>
@@ -120,7 +139,7 @@ const Checkout = () => {
       <h1>Checkout</h1>
 
       <form className="checkout-form" onSubmit={submitHandler}>
-        {/* Shipping */}
+        {/* ---------- Shipping ---------- */}
         <h2>Shipping Address</h2>
 
         <input
@@ -167,14 +186,12 @@ const Checkout = () => {
           }
         />
 
-        {/* Payment */}
+        {/* ---------- Payment ---------- */}
         <h2>Payment Method</h2>
 
         <label className="radio">
           <input
             type="radio"
-            name="payment"
-            value="COD"
             checked={paymentMethod === "COD"}
             onChange={() => setPaymentMethod("COD")}
           />
@@ -186,12 +203,15 @@ const Checkout = () => {
           Online Payment (coming soon)
         </label>
 
-        {/* Summary */}
+        {/* ---------- Summary ---------- */}
         <h2>Order Summary</h2>
 
-        {cartItems.map((item) => (
+        {checkoutItems.map((item) => (
           <div key={item.product._id} className="summary-item">
-            <img  src={`http://localhost:5000${item.product.image}`} alt={item.product.name} />
+            <img
+              src={`http://localhost:5000${item.product.image}`}
+              alt={item.product.name}
+            />
             <div>
               <p>{item.product.name}</p>
               <span>
@@ -230,5 +250,6 @@ const Checkout = () => {
 };
 
 export default Checkout;
+
 
 
