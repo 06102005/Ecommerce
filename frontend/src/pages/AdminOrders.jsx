@@ -14,6 +14,9 @@ const AdminOrders = () => {
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
 
+  const [paymentFilter, setPaymentFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
   /* ---------------- FETCH ORDERS ---------------- */
   const fetchOrders = async () => {
     try {
@@ -36,7 +39,7 @@ const AdminOrders = () => {
     if (user?.role === "admin") fetchOrders();
   }, [user]);
 
-  /* ---------------- UPDATE STATUS ---------------- */
+  /* ---------------- UPDATE ORDER STATUS ---------------- */
   const updateStatus = async (id, nextStatus) => {
     try {
       const res = await fetch(
@@ -60,6 +63,53 @@ const AdminOrders = () => {
     }
   };
 
+  /* ---------------- MARK PAID ---------------- */
+  const markAsPaid = async (id) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/orders/${id}/pay`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      fetchOrders();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  /* ---------------- FILTERS ---------------- */
+  const filteredOrders = orders.filter((o) => {
+    const paymentMatch =
+      paymentFilter === "ALL" ||
+      (paymentFilter === "COD" && o.paymentMethod === "COD") ||
+      (paymentFilter === "RAZORPAY" && o.paymentMethod === "Razorpay");
+
+    const statusMatch =
+      statusFilter === "ALL" || o.orderStatus === statusFilter;
+
+    return paymentMatch && statusMatch;
+  });
+
+  /* ---------------- PAGINATION ---------------- */
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredOrders.length / ORDERS_PER_PAGE)
+  );
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * ORDERS_PER_PAGE;
+  const paginatedOrders = filteredOrders.slice(
+    start,
+    start + ORDERS_PER_PAGE
+  );
+
   /* ---------------- GUARD ---------------- */
   if (!user || user.role !== "admin") {
     return <h2 className="error">Not authorized</h2>;
@@ -68,15 +118,39 @@ const AdminOrders = () => {
   if (loading) return <h2 className="loading">Loading orders…</h2>;
   if (error) return <h2 className="error">{error}</h2>;
 
-  /* ---------------- PAGINATION ---------------- */
-  const totalPages = Math.max(1, Math.ceil(orders.length / ORDERS_PER_PAGE));
-  const safePage = Math.min(page, totalPages);
-  const start = (safePage - 1) * ORDERS_PER_PAGE;
-  const paginatedOrders = orders.slice(start, start + ORDERS_PER_PAGE);
-
   return (
     <div className="admin-orders">
       <h1>Admin Orders</h1>
+
+      {/* -------- Filters -------- */}
+      <div className="filters">
+        <select
+          value={paymentFilter}
+          onChange={(e) => {
+            setPaymentFilter(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="ALL">All Payments</option>
+          <option value="COD">COD</option>
+          <option value="RAZORPAY">Razorpay</option>
+        </select>
+
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="ALL">All Status</option>
+          {STATUS_FLOW.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {paginatedOrders.length === 0 ? (
         <p>No orders found</p>
@@ -90,7 +164,7 @@ const AdminOrders = () => {
                 <th>Total</th>
                 <th>Payment</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th>Actions</th>
                 <th />
               </tr>
             </thead>
@@ -105,18 +179,30 @@ const AdminOrders = () => {
                     <td>{o._id.slice(-6)}</td>
                     <td>{o.user?.email}</td>
                     <td>₹{o.totalPrice}</td>
+
                     <td>
                       <span
                         className={`status ${
                           o.isPaid ? "paid" : "pending"
                         }`}
                       >
-                        {o.isPaid ? "Paid" : "COD"}
+                        {o.isPaid ? "Paid" : o.paymentMethod}
                       </span>
+
+                      {!o.isPaid && (
+                        <button
+                          className="pay-btn"
+                          onClick={() => markAsPaid(o._id)}
+                        >
+                          Mark Paid
+                        </button>
+                      )}
                     </td>
 
                     <td>
-                      <span className={`status ${o.orderStatus.toLowerCase()}`}>
+                      <span
+                        className={`status ${o.orderStatus.toLowerCase()}`}
+                      >
                         {o.orderStatus}
                       </span>
                     </td>
@@ -160,7 +246,9 @@ const AdminOrders = () => {
 
             <button
               disabled={safePage === totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() =>
+                setPage((p) => Math.min(totalPages, p + 1))
+              }
             >
               Next
             </button>
@@ -172,6 +260,7 @@ const AdminOrders = () => {
 };
 
 export default AdminOrders;
+
 
 
 
