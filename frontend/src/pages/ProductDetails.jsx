@@ -80,7 +80,10 @@ const ProductDetails = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${user.token}`,
       },
-      body: JSON.stringify({ productId: product._id, qty }),
+      body: JSON.stringify({
+        productId: product._id,
+        qty,
+      }),
     });
 
     navigate("/cart");
@@ -105,8 +108,8 @@ const ProductDetails = () => {
   if (!product) return null;
 
   const stockText =
-    product.countInStock > 0
-      ? `${product.countInStock} in stock`
+    product.stock > 0
+      ? `${product.stock} in stock`
       : "Out of stock";
 
   return (
@@ -138,15 +141,11 @@ const ProductDetails = () => {
 
           <p className="description">{product.description}</p>
 
-          <p
-            className={`stock ${
-              product.countInStock === 0 ? "out" : "in"
-            }`}
-          >
+          <p className={`stock ${product.stock === 0 ? "out" : "in"}`}>
             {stockText}
           </p>
 
-          {product.countInStock > 0 && (
+          {product.stock > 0 && (
             <div className="qty-controls">
               <button onClick={() => setQty(qty - 1)} disabled={qty <= 1}>
                 −
@@ -154,7 +153,7 @@ const ProductDetails = () => {
               <span>{qty}</span>
               <button
                 onClick={() => setQty(qty + 1)}
-                disabled={qty >= product.countInStock}
+                disabled={qty >= product.stock}
               >
                 +
               </button>
@@ -164,7 +163,7 @@ const ProductDetails = () => {
           <div className="button-row">
             <button
               className="add-cart-btn"
-              disabled={product.countInStock === 0}
+              disabled={product.stock === 0}
               onClick={addToCartHandler}
             >
               Add to Cart
@@ -172,7 +171,7 @@ const ProductDetails = () => {
 
             <button
               className="buy-btn"
-              disabled={product.countInStock === 0}
+              disabled={product.stock === 0}
               onClick={buyNowHandler}
             >
               Buy Now
@@ -185,6 +184,3 @@ const ProductDetails = () => {
 };
 
 export default ProductDetails;
-
-
-

@@ -12,7 +12,7 @@ const AdminProductForm = () => {
     price: "",
     image: "",
     description: "",
-    countInStock: "",
+    stock: "",
   });
 
   useEffect(() => {
@@ -23,7 +23,14 @@ const AdminProductForm = () => {
         `http://localhost:5000/api/products/${id}`
       );
       const data = await res.json();
-      setProduct(data);
+
+      setProduct({
+        name: data.name || "",
+        price: data.price || "",
+        image: data.image || "",
+        description: data.description || "",
+        stock: data.stock || "",
+      });
     };
 
     fetchProduct();
@@ -88,13 +95,13 @@ const AdminProductForm = () => {
         />
 
         <input
-          placeholder="Stock"
+          placeholder="Stock Quantity"
           type="number"
-          value={product.countInStock}
+          value={product.stock}
           onChange={(e) =>
             setProduct({
               ...product,
-              countInStock: e.target.value,
+              stock: e.target.value,
             })
           }
           required
