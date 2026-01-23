@@ -107,10 +107,12 @@ const ProductDetails = () => {
   if (error) return <h2>{error}</h2>;
   if (!product) return null;
 
-  const stockText =
-    product.stock > 0
-      ? `${product.stock} in stock`
-      : "Out of stock";
+  const stock = product.stock;
+
+<p className={`stock ${stock === 0 ? "out" : "in"}`}>
+  {stock > 0 ? `${stock} in stock` : "Out of stock"}
+</p>
+
 
   return (
     <div className="product-page">
@@ -142,40 +144,38 @@ const ProductDetails = () => {
           <p className="description">{product.description}</p>
 
           <p className={`stock ${product.stock === 0 ? "out" : "in"}`}>
-            {stockText}
+            {stock}
           </p>
 
-          {product.stock > 0 && (
-            <div className="qty-controls">
-              <button onClick={() => setQty(qty - 1)} disabled={qty <= 1}>
-                −
-              </button>
-              <span>{qty}</span>
-              <button
-                onClick={() => setQty(qty + 1)}
-                disabled={qty >= product.stock}
-              >
-                +
-              </button>
-            </div>
-          )}
+          {stock > 0 && (
+  <div className="qty-controls">
+    <button disabled={qty <= 1} onClick={() => setQty(qty - 1)}>−</button>
+    <span>{qty}</span>
+    <button
+      disabled={qty >= stock}
+      onClick={() => setQty(qty + 1)}
+    >
+      +
+    </button>
+  </div>
+)}
 
           <div className="button-row">
             <button
-              className="add-cart-btn"
-              disabled={product.stock === 0}
-              onClick={addToCartHandler}
-            >
-              Add to Cart
-            </button>
+  className="add-cart-btn"
+  disabled={stock === 0}
+  onClick={addToCartHandler}
+>
+  Add to Cart
+</button>
 
-            <button
-              className="buy-btn"
-              disabled={product.stock === 0}
-              onClick={buyNowHandler}
-            >
-              Buy Now
-            </button>
+<button
+  className="buy-btn"
+  disabled={stock === 0}
+  onClick={buyNowHandler}
+>
+  Buy Now
+</button>
           </div>
         </div>
       </div>

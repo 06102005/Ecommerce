@@ -10,260 +10,223 @@ const AdminOrders = () => {
   const { user } = useAuth();
 
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-
-  const [paymentFilter, setPaymentFilter] = useState("ALL");
-  const [statusFilter, setStatusFilter] = useState("ALL");
 
   /* ---------------- FETCH ORDERS ---------------- */
   const fetchOrders = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/orders", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load orders");
-
-      setOrders(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    const res = await fetch("http://localhost:5000/api/orders", {
+      headers: { Authorization: `Bearer ${user.token}` },
+    });
+    const data = await res.json();
+    setOrders(data);
   };
 
   useEffect(() => {
     if (user?.role === "admin") fetchOrders();
   }, [user]);
 
-  /* ---------------- UPDATE ORDER STATUS ---------------- */
-  const updateStatus = async (id, nextStatus) => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/orders/${id}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-          body: JSON.stringify({ status: nextStatus }),
-        }
-      );
+  /* ---------------- ACTIVE ORDERS ONLY ---------------- */
+  const activeOrders = orders.filter(
+    (o) => !(o.isPaid && o.orderStatus === "Delivered")
+  );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      fetchOrders();
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  /* ---------------- MARK PAID ---------------- */
-  const markAsPaid = async (id) => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/orders/${id}/pay`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
-      );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      fetchOrders();
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  /* ---------------- FILTERS ---------------- */
-  const filteredOrders = orders.filter((o) => {
-    const paymentMatch =
-      paymentFilter === "ALL" ||
-      (paymentFilter === "COD" && o.paymentMethod === "COD") ||
-      (paymentFilter === "RAZORPAY" && o.paymentMethod === "Razorpay");
-
-    const statusMatch =
-      statusFilter === "ALL" || o.orderStatus === statusFilter;
-
-    return paymentMatch && statusMatch;
+  /* ---------------- SEARCH (GLOBAL) ---------------- */
+  const searchedOrders = activeOrders.filter((o) => {
+    const q = search.toLowerCase();
+    return (
+      o.user?.name?.toLowerCase().includes(q) ||
+      o.user?.email?.toLowerCase().includes(q) ||
+      o._id.toLowerCase().includes(q)
+    );
   });
 
-  /* ---------------- PAGINATION ---------------- */
+  /* ---------------- PAGINATION AFTER SEARCH ---------------- */
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredOrders.length / ORDERS_PER_PAGE)
-  );
-  const safePage = Math.min(page, totalPages);
-  const start = (safePage - 1) * ORDERS_PER_PAGE;
-  const paginatedOrders = filteredOrders.slice(
-    start,
-    start + ORDERS_PER_PAGE
+    Math.ceil(searchedOrders.length / ORDERS_PER_PAGE)
   );
 
-  /* ---------------- GUARD ---------------- */
-  if (!user || user.role !== "admin") {
-    return <h2 className="error">Not authorized</h2>;
-  }
+  const paginatedOrders = searchedOrders.slice(
+    (page - 1) * ORDERS_PER_PAGE,
+    page * ORDERS_PER_PAGE
+  );
 
-  if (loading) return <h2 className="loading">Loading orders…</h2>;
-  if (error) return <h2 className="error">{error}</h2>;
+  /* ---------------- ACTIONS ---------------- */
+  const updateStatus = async (id, status) => {
+    await fetch(`http://localhost:5000/api/orders/${id}/status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+    fetchOrders();
+  };
+
+  const markPaid = async (id) => {
+    await fetch(`http://localhost:5000/api/orders/${id}/pay`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${user.token}` },
+    });
+    fetchOrders();
+  };
+
+  const deleteOrder = async (id) => {
+    if (!window.confirm("Delete this order?")) return;
+
+    await fetch(`http://localhost:5000/api/orders/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${user.token}` },
+    });
+    fetchOrders();
+  };
 
   return (
     <div className="admin-orders">
-      <h1>Admin Orders</h1>
+      {/* ---------- Header ---------- */}
+      <div className="orders-header">
+        <h1>Admin Orders</h1>
 
-      {/* -------- Filters -------- */}
-      <div className="filters">
-        <select
-          value={paymentFilter}
-          onChange={(e) => {
-            setPaymentFilter(e.target.value);
-            setPage(1);
-          }}
-        >
-          <option value="ALL">All Payments</option>
-          <option value="COD">COD</option>
-          <option value="RAZORPAY">Razorpay</option>
-        </select>
-
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-        >
-          <option value="ALL">All Status</option>
-          {STATUS_FLOW.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+        <Link to="/admin/orders/done" className="done-page-btn">
+          Done Orders
+        </Link>
       </div>
 
-      {paginatedOrders.length === 0 ? (
-        <p>No orders found</p>
-      ) : (
-        <>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>User</th>
-                <th>Total</th>
-                <th>Payment</th>
-                <th>Status</th>
-                <th>Actions</th>
-                <th />
-              </tr>
-            </thead>
+      {/* ---------- Search ---------- */}
+      <input
+        className="search"
+        placeholder="Search by user / email / order id..."
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
+      />
 
-            <tbody>
-              {paginatedOrders.map((o) => {
-                const currentIndex = STATUS_FLOW.indexOf(o.orderStatus);
-                const nextStatus = STATUS_FLOW[currentIndex + 1];
+      {/* ---------- Table ---------- */}
+      <table>
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>User</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Progress</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
 
-                return (
-                  <tr key={o._id}>
-                    <td>{o._id.slice(-6)}</td>
-                    <td>{o.user?.email}</td>
-                    <td>₹{o.totalPrice}</td>
+        <tbody>
+          {paginatedOrders.length === 0 ? (
+            <tr>
+              <td colSpan="7">No orders found</td>
+            </tr>
+          ) : (
+            paginatedOrders.map((o) => {
+              const nextStatus =
+                STATUS_FLOW[STATUS_FLOW.indexOf(o.orderStatus) + 1];
 
-                    <td>
-                      <span
-                        className={`status ${
-                          o.isPaid ? "paid" : "pending"
-                        }`}
+              return (
+                <tr key={o._id}>
+                  <td>{o._id.slice(-6)}</td>
+
+                  <td>
+                    <strong>{o.user?.name}</strong>
+                    <br />
+                    <small>{o.user?.email}</small>
+                  </td>
+
+                  <td>₹{o.totalPrice}</td>
+
+                  <td>
+                    <span
+                      className={`status ${
+                        o.isPaid ? "paid" : "pending"
+                      }`}
+                    >
+                      {o.isPaid ? "Paid" : o.paymentMethod}
+                    </span>
+
+                    {!o.isPaid && (
+                      <button
+                        className="pay-btn"
+                        onClick={() => markPaid(o._id)}
                       >
-                        {o.isPaid ? "Paid" : o.paymentMethod}
-                      </span>
+                        Mark Paid
+                      </button>
+                    )}
+                  </td>
 
-                      {!o.isPaid && (
-                        <button
-                          className="pay-btn"
-                          onClick={() => markAsPaid(o._id)}
-                        >
-                          Mark Paid
-                        </button>
-                      )}
-                    </td>
+                  <td>
+                    <span
+                      className={`status ${o.orderStatus.toLowerCase()}`}
+                    >
+                      {o.orderStatus}
+                    </span>
+                  </td>
 
-                    <td>
-                      <span
-                        className={`status ${o.orderStatus.toLowerCase()}`}
+                  <td>
+                    {nextStatus ? (
+                      <button
+                        className="status-btn"
+                        onClick={() =>
+                          updateStatus(o._id, nextStatus)
+                        }
                       >
-                        {o.orderStatus}
-                      </span>
-                    </td>
+                        Mark {nextStatus}
+                      </button>
+                    ) : (
+                      <span className="done">✓</span>
+                    )}
+                  </td>
 
-                    <td>
-                      {nextStatus ? (
-                        <button
-                          className="status-btn"
-                          onClick={() => updateStatus(o._id, nextStatus)}
-                        >
-                          Mark {nextStatus}
-                        </button>
-                      ) : (
-                        <span className="done">✓</span>
-                      )}
-                    </td>
+                  <td className="action-col">
+                    <Link
+                      to={`/order/${o._id}`}
+                      className="view-btn"
+                    >
+                      View
+                    </Link>
 
-                    <td>
-                      <Link className="view-btn" to={`/order/${o._id}`}>
-                        View
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    <button
+                      className="delete-btn"
+                      onClick={() => deleteOrder(o._id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
 
-          {/* Pagination */}
-          <div className="pagination">
-            <button
-              disabled={safePage === 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Prev
-            </button>
+      {/* ---------- Pagination ---------- */}
+      <div className="pagination">
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+        >
+          Prev
+        </button>
 
-            <span>
-              Page {safePage} / {totalPages}
-            </span>
+        <span>
+          Page {page} / {totalPages}
+        </span>
 
-            <button
-              disabled={safePage === totalPages}
-              onClick={() =>
-                setPage((p) => Math.min(totalPages, p + 1))
-              }
-            >
-              Next
-            </button>
-          </div>
-        </>
-      )}
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };
 
 export default AdminOrders;
-
-
-
-
-
-
-

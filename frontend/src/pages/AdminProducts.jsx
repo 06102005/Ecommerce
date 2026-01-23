@@ -24,61 +24,56 @@ const AdminProducts = () => {
 
   const [preview, setPreview] = useState(null);
 
-  /* ---------- Fetch Products ---------- */
+  /* ---------------- FETCH PRODUCTS ---------------- */
   const fetchProducts = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/products");
-      const data = await res.json();
-      setProducts(data.products || data);
-    } finally {
-      setLoading(false);
-    }
+    const res = await fetch("http://localhost:5000/api/products");
+    const data = await res.json();
+    setProducts(data.products || data);
+    setLoading(false);
   };
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  /* ---------- Submit ---------- */
+  /* ---------------- ADD / UPDATE PRODUCT ---------------- */
   const submitHandler = async (e) => {
     e.preventDefault();
-    if (!user?.token) return alert("Unauthorized");
+    if (!user?.token) return;
 
     const formData = new FormData();
-    Object.entries(form).forEach(([k, v]) => {
-      if (v !== null && v !== "") formData.append(k, v);
-    });
+    formData.append("name", form.name);
+    formData.append("price", Number(form.price));
+    formData.append("stock", Number(form.stock));
+    formData.append("description", form.description);
+    if (form.image) formData.append("image", form.image);
 
     const url = editingId
       ? `http://localhost:5000/api/products/${editingId}`
       : "http://localhost:5000/api/products";
 
-    const res = await fetch(url, {
+    await fetch(url, {
       method: editingId ? "PUT" : "POST",
-      headers: { Authorization: `Bearer ${user.token}` },
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
       body: formData,
     });
 
-    const data = await res.json();
-    if (!res.ok) return alert(data.message || "Request failed");
-
-    resetForm();
-    fetchProducts();
-  };
-
-  /* ---------- Delete ---------- */
-  const deleteHandler = async (id) => {
-    if (!window.confirm("Delete this product?")) return;
-
-    await fetch(`http://localhost:5000/api/products/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${user.token}` },
+    setEditingId(null);
+    setForm({
+      name: "",
+      price: "",
+      stock: "",
+      image: null,
+      description: "",
     });
+    setPreview(null);
 
     fetchProducts();
   };
 
-  /* ---------- Edit ---------- */
+  /* ---------------- EDIT ---------------- */
   const editHandler = (p) => {
     setEditingId(p._id);
     setForm({
@@ -92,37 +87,38 @@ const AdminProducts = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const resetForm = () => {
-    setEditingId(null);
-    setForm({
-      name: "",
-      price: "",
-      stock: "",
-      image: null,
-      description: "",
+  /* ---------------- DELETE ---------------- */
+  const deleteHandler = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+
+    await fetch(`http://localhost:5000/api/products/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
     });
-    setPreview(null);
+
+    fetchProducts();
   };
 
-  /* ---------- Search + Pagination ---------- */
+  if (loading) return <h2 className="loading">Loading…</h2>;
+
+  /* ---------------- FILTER + PAGINATION ---------------- */
   const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filtered.length / PRODUCTS_PER_PAGE);
   const start = (page - 1) * PRODUCTS_PER_PAGE;
   const paginated = filtered.slice(start, start + PRODUCTS_PER_PAGE);
-
-  if (loading) return <h2 className="loading">Loading products…</h2>;
+  const totalPages = Math.ceil(filtered.length / PRODUCTS_PER_PAGE);
 
   return (
     <div className="admin-products">
       <h1>Admin Products</h1>
 
-      {/* -------- Search -------- */}
       <input
         className="search"
-        placeholder="Search products…"
+        placeholder="Search…"
         value={search}
         onChange={(e) => {
           setSearch(e.target.value);
@@ -130,51 +126,45 @@ const AdminProducts = () => {
         }}
       />
 
-      {/* -------- Form -------- */}
-      <form onSubmit={submitHandler} className="product-form">
-        <h2>{editingId ? "Edit Product" : "Add Product"}</h2>
-
+      {/* -------- PRODUCT FORM -------- */}
+      <form className="product-form" onSubmit={submitHandler}>
         <input
-          placeholder="Product Name"
           required
+          placeholder="Name"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
 
         <input
           type="number"
-          placeholder="Price"
           required
+          placeholder="Price"
           value={form.price}
           onChange={(e) => setForm({ ...form, price: e.target.value })}
         />
 
         <input
           type="number"
-          placeholder="Stock Quantity"
           required
+          placeholder="Stock"
           value={form.stock}
           onChange={(e) => setForm({ ...form, stock: e.target.value })}
         />
 
         <input
           type="file"
-          accept="image/*"
           onChange={(e) => {
             const file = e.target.files[0];
-            if (!file) return;
             setForm({ ...form, image: file });
             setPreview(URL.createObjectURL(file));
           }}
         />
 
-        {preview && (
-          <img src={preview} alt="Preview" className="preview" />
-        )}
+        {preview && <img src={preview} className="preview" alt="preview" />}
 
         <textarea
-          placeholder="Description"
           required
+          placeholder="Description"
           value={form.description}
           onChange={(e) =>
             setForm({ ...form, description: e.target.value })
@@ -183,88 +173,100 @@ const AdminProducts = () => {
 
         <div className="actions">
           <button type="submit">
-            {editingId ? "Update" : "Add"}
+            {editingId ? "Update Product" : "Add Product"}
           </button>
+
           {editingId && (
-            <button type="button" onClick={resetForm} className="cancel">
+            <button
+              type="button"
+              className="cancel"
+              onClick={() => {
+                setEditingId(null);
+                setForm({
+                  name: "",
+                  price: "",
+                  stock: "",
+                  image: null,
+                  description: "",
+                });
+                setPreview(null);
+              }}
+            >
               Cancel
             </button>
           )}
         </div>
       </form>
 
-      {/* -------- Products -------- */}
+      {/* -------- PRODUCTS TABLE -------- */}
       {paginated.length === 0 ? (
         <p className="empty">No products found</p>
       ) : (
-        <>
-          <table>
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Stock</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.map((p) => (
-                <tr key={p._id}>
-                  <td>
-                    <img
-                      src={`http://localhost:5000${p.image}`}
-                      alt={p.name}
-                    />
-                  </td>
-                  <td>{p.name}</td>
-                  <td>₹{p.price}</td>
-                  <td>
-                    {p.stock > 0 ? (
-                      <span className="in-stock">
-                        In Stock ({p.stock})
-                      </span>
-                    ) : (
-                      <span className="out-stock">
-                        Out of Stock
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <button onClick={() => editHandler(p)}>
-                      Edit
-                    </button>
-                    <button
-                      className="danger"
-                      onClick={() => deleteHandler(p._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-          {/* Pagination */}
-          <div className="pagination">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Prev
-            </button>
-            <span>
-              Page {page} / {totalPages}
-            </span>
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </button>
-          </div>
-        </>
+          <tbody>
+            {paginated.map((p) => (
+              <tr key={p._id}>
+                <td data-label="Image">
+                  <img
+                    src={`http://localhost:5000${p.image}`}
+                    alt={p.name}
+                  />
+                </td>
+
+                <td data-label="Name">{p.name}</td>
+
+                <td data-label="Price">₹{p.price}</td>
+
+                <td data-label="Stock">
+                 {p.stock > 0 ? `${p.stock} in stock` : "Out of stock"}
+                </td>
+
+                <td data-label="Actions">
+                  <button onClick={() => editHandler(p)}>Edit</button>
+                  <button
+                    className="danger"
+                    onClick={() => deleteHandler(p._id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {/* -------- PAGINATION -------- */}
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Prev
+          </button>
+
+          <span>
+            {page} / {totalPages}
+          </span>
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       )}
     </div>
   );

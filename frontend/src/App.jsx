@@ -10,6 +10,7 @@ import AdminProducts from "./pages/AdminProducts";
 import AdminProductForm from "./pages/AdminProductForm";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
+import AdminOrdersDone from "./pages/AdminOrdersDone";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails";
@@ -84,6 +85,14 @@ function App() {
   element={
     <ProtectedRoute adminOnly={true}>
       <AdminProductForm />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/orders/done"
+  element={
+    <ProtectedRoute adminOnly={true}>
+      <AdminOrdersDone />
     </ProtectedRoute>
   }
 />

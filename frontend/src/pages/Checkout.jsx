@@ -57,6 +57,60 @@ const Checkout = () => {
     fetchCart();
   }, [user, buyNowItem, navigate]);
 
+   /* ---------------- Razorpay ---------------- */
+  const loadRazorpay = () =>
+    new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      document.body.appendChild(script);
+    });
+
+  const payOnline = async () => {
+    await loadRazorpay();
+
+    const orderRes = await fetch(
+      "http://localhost:5000/api/payment/create",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ amount: totalPrice }),
+      }
+    );
+
+    const orderData = await orderRes.json();
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY,
+      amount: orderData.amount,
+      currency: "INR",
+      name: "E-Commerce Store",
+      order_id: orderData.id,
+      handler: async (response) => {
+        const verifyRes = await fetch(
+          "http://localhost:5000/api/payment/verify",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${user.token}`,
+            },
+            body: JSON.stringify(response),
+          }
+        );
+
+        if (!verifyRes.ok) return alert("Payment failed");
+
+        placeOrder(true);
+      },
+    };
+
+    new window.Razorpay(options).open();
+  };
+
   /* ---------------- Persist Address ---------------- */
   useEffect(() => {
     localStorage.setItem("shippingAddress", JSON.stringify(shippingAddress));
@@ -198,9 +252,10 @@ const Checkout = () => {
           Cash on Delivery
         </label>
 
-        <label className="radio disabled">
-          <input type="radio" disabled />
-          Online Payment (coming soon)
+        <label className="radio">
+          <input type="radio" checked={paymentMethod==="Razorpay"}
+            onChange={()=>setPaymentMethod("Razorpay")}/>
+          Online Payment (Razorpay)
         </label>
 
         {/* ---------- Summary ---------- */}

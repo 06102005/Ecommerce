@@ -1,0 +1,104 @@
+.admin-orders {
+  padding: 30px;
+  background: #fff;
+  min-height: 100vh;
+}
+
+.admin-orders h1 {
+  color: #28a745;
+  margin-bottom: 15px;
+}
+
+/* ---------- Search ---------- */
+.search {
+  padding: 8px;
+  width: 320px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* ---------- Table ---------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #000;
+}
+
+thead th {
+  color: #fff;
+  padding: 10px;
+}
+
+tbody td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+/* ---------- Status ---------- */
+.status {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status.delivered {
+  background: #28a745;
+  color: #fff;
+}
+
+/* ---------- Buttons ---------- */
+.delete-btn {
+  background: #dc3545;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+}
+
+/* ---------- Pagination ---------- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  table,
+  thead,
+  tbody,
+  tr,
+  td,
+  th {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody tr {
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 6px;
+  }
+
+  tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px;
+  }
+}

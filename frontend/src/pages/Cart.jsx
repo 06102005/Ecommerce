@@ -90,12 +90,11 @@ const Cart = () => {
         ) : (
           <>
             {cartItems.map((item) => {
-              const stock = item.product.countInStock;
+              const stock = item.product.stock;
 
-              const stockText =
-                stock > 15
-                  ? "Book yours soon"
-                  : `${stock} left in stock`;
+<p className="stock">
+  {stock > 0 ? `${stock} in stock` : "Out of stock"}
+</p>
 
               return (
                 <div key={item.product._id} className="cart-item">
@@ -107,7 +106,7 @@ const Cart = () => {
                   <div className="cart-details">
                     <h3>{item.product.name}</h3>
                     <p>₹{item.product.price}</p>
-                    <p className="stock">{stockText}</p>
+                    <p className="stock">{stock}</p>
 
                     <div className="qty-controls">
                       <button
@@ -123,17 +122,12 @@ const Cart = () => {
 
                       <span>{item.qty}</span>
 
-                      <button
-                        onClick={() =>
-                          updateQty(
-                            item.product._id,
-                            item.qty + 1
-                          )
-                        }
-                        disabled={item.qty >= stock}
-                      >
-                        +
-                      </button>
+                     <button
+  disabled={stock === 0 || item.qty >= stock}
+  onClick={() => updateQty(item.product._id, item.qty + 1)}
+>
+  +
+</button>
                     </div>
 
                     <button

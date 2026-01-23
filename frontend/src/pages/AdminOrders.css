@@ -4,9 +4,37 @@
   min-height: 100vh;
 }
 
+/* ---------- Header ---------- */
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .admin-orders h1 {
   color: #ff7a00;
-  margin-bottom: 20px;
+}
+
+.done-page-btn {
+  background: #28a745;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.done-page-btn:hover {
+  background: #218838;
+}
+
+/* ---------- Search ---------- */
+.search {
+  padding: 8px;
+  width: 320px;
+  margin: 15px 0;
+  border-radius: 4px;
+  border: 1px solid #ccc;
 }
 
 /* ---------- Table ---------- */
@@ -77,63 +105,7 @@ tbody td {
   opacity: 0.9;
 }
 
-.view-btn {
-  text-decoration: none;
-  background: #555;
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 4px;
-}
-
-.done {
-  color: #28a745;
-  font-size: 18px;
-}
-
-.invoice-btn {
-  padding: 6px 10px;
-  background: #ff7a00;
-  color: #fff;
-  border-radius: 4px;
-  text-decoration: none;
-  font-size: 13px;
-}
-
-.invoice-btn:hover {
-  background: #e36b00;
-}
-
-/* ---------- Pagination ---------- */
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-/* ---------- States ---------- */
-.loading,
-.error {
-  padding: 30px;
-  text-align: center;
-}
-
-/* ---------- Filters ---------- */
-.filters {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.filters select {
-  padding: 6px 10px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-/* ---------- Mark Paid ---------- */
 .pay-btn {
-  display: block;
   margin-top: 6px;
   background: #28a745;
   color: #fff;
@@ -144,8 +116,50 @@ tbody td {
   cursor: pointer;
 }
 
-.pay-btn:hover {
-  opacity: 0.9;
+/* ---------- Actions ---------- */
+.action-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.view-btn {
+  background: #007bff;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.view-btn:hover {
+  background: #0056b3;
+}
+
+.delete-btn {
+  background: #dc3545;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #c82333;
+}
+
+.done {
+  color: #28a745;
+  font-size: 18px;
+}
+
+/* ---------- Pagination ---------- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
 }
 
 /* ---------- Responsive ---------- */
@@ -176,8 +190,3 @@ tbody td {
     padding: 6px;
   }
 }
-
-
-
-
-

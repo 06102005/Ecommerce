@@ -8,6 +8,7 @@ const {
   getOrderById,
   updateOrderToPaid,
   updateOrderStatus,
+  deleteOrder,
 } = require("../controllers/orderController");
 
 const { cancelOrder } = require("../controllers/cancelController");
@@ -27,6 +28,8 @@ router.put("/:id/pay", protect, admin, updateOrderToPaid);
 
 /* ---------------- DELIVERY (ADMIN) ---------------- */
 router.put("/:id/status", protect, admin, updateOrderStatus);
+
+router.delete("/:id", protect, admin, deleteOrder);
 
 /* ---------------- CANCELLATION & REFUND ---------------- */
 router.put("/:id/cancel", protect, cancelOrder);
