@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useBuyNow } from "../context/BuyNowContext";
 import { useNavigate } from "react-router-dom";
 import "./Cart.css";
 
+const MAX_QTY = 15;
+
 const Cart = () => {
   const { user } = useAuth();
+  const { setBuyNowItem } = useBuyNow();
   const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!user || !user.token) {
+    if (!user?.token) {
       navigate("/login");
       return;
     }
@@ -25,12 +29,13 @@ const Cart = () => {
         });
 
         const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to load cart");
 
-        if (!res.ok) {
-          throw new Error(data.message || "Failed to load cart");
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid cart data");
         }
 
-        setCartItems(data.filter((item) => item.product));
+        setCartItems(data.filter(item => item.product));
       } catch (err) {
         setError(err.message);
       }
@@ -40,7 +45,7 @@ const Cart = () => {
   }, [user, navigate]);
 
   const updateQty = async (productId, qty) => {
-    if (qty < 1) return;
+    if (qty < 1 || qty > MAX_QTY) return;
 
     const res = await fetch(
       `http://localhost:5000/api/cart/${productId}`,
@@ -55,7 +60,7 @@ const Cart = () => {
     );
 
     const data = await res.json();
-    setCartItems(data.filter((item) => item.product));
+    setCartItems(data.filter(item => item.product));
   };
 
   const removeItem = async (productId) => {
@@ -70,7 +75,7 @@ const Cart = () => {
     );
 
     const data = await res.json();
-    setCartItems(data.filter((item) => item.product));
+    setCartItems(data.filter(item => item.product));
   };
 
   const totalPrice = cartItems.reduce(
@@ -89,12 +94,8 @@ const Cart = () => {
           <p>Your cart is empty</p>
         ) : (
           <>
-            {cartItems.map((item) => {
-              const stock = item.product.stock;
-
-<p className="stock">
-  {stock > 0 ? `${stock} in stock` : "Out of stock"}
-</p>
+            {cartItems.map(item => {
+              const inStock = item.product.countInStock > 0;
 
               return (
                 <div key={item.product._id} className="cart-item">
@@ -106,15 +107,16 @@ const Cart = () => {
                   <div className="cart-details">
                     <h3>{item.product.name}</h3>
                     <p>₹{item.product.price}</p>
-                    <p className="stock">{stock}</p>
+
+                    <p className="stock">
+                      {inStock ? "In stock" : "Out of stock"}
+                    </p>
 
                     <div className="qty-controls">
                       <button
+                        disabled={item.qty <= 1}
                         onClick={() =>
-                          updateQty(
-                            item.product._id,
-                            item.qty - 1
-                          )
+                          updateQty(item.product._id, item.qty - 1)
                         }
                       >
                         −
@@ -122,19 +124,19 @@ const Cart = () => {
 
                       <span>{item.qty}</span>
 
-                     <button
-  disabled={stock === 0 || item.qty >= stock}
-  onClick={() => updateQty(item.product._id, item.qty + 1)}
->
-  +
-</button>
+                      <button
+                        disabled={item.qty >= MAX_QTY}
+                        onClick={() =>
+                          updateQty(item.product._id, item.qty + 1)
+                        }
+                      >
+                        +
+                      </button>
                     </div>
 
                     <button
                       className="remove-btn"
-                      onClick={() =>
-                        removeItem(item.product._id)
-                      }
+                      onClick={() => removeItem(item.product._id)}
                     >
                       Remove
                     </button>
@@ -147,7 +149,11 @@ const Cart = () => {
 
             <button
               className="checkout-btn"
-              onClick={() => navigate("/checkout")}
+              onClick={() => {
+                // ✅ THIS IS THE FIX
+                setBuyNowItem(null);
+                navigate("/checkout");
+              }}
             >
               Proceed to Checkout
             </button>

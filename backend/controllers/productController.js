@@ -64,6 +64,7 @@ const createProduct = async (req, res) => {
       description,
       category,
       countInStock,
+      shippingCost,
     } = req.body;
 
     // 🔐 Validate image upload

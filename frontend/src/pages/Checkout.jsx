@@ -7,35 +7,39 @@ import "./Checkout.css";
 const Checkout = () => {
   const { user } = useAuth();
   const { buyNowItem, setBuyNowItem } = useBuyNow();
+
   const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState([]);
-  const [paymentMethod, setPaymentMethod] = useState("COD");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
 
+  /* ---------------- SHIPPING FORM ---------------- */
   const [shippingAddress, setShippingAddress] = useState(() => {
     const saved = localStorage.getItem("shippingAddress");
     return saved
       ? JSON.parse(saved)
-      : { address: "", city: "", postalCode: "", country: "" };
+      : {
+          address: "",
+          city: "",
+          postalCode: "",
+          country: "",
+          phoneNumber: "", // ✅ NEW
+        };
   });
 
-  /* ---------------- Fetch Cart (ONLY if NOT Buy Now) ---------------- */
+  /* ---------------- FETCH CART ---------------- */
   useEffect(() => {
     if (!user?.token) {
       navigate("/login");
       return;
     }
 
-    if (buyNowItem) {
-      setLoading(false);
-      return;
-    }
-
     const fetchCart = async () => {
       try {
+        setLoading(true);
+
         const res = await fetch("http://localhost:5000/api/cart", {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -43,10 +47,10 @@ const Checkout = () => {
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load cart");
 
-        const items = Array.isArray(data) ? data : data.items || [];
-        setCartItems(items.filter((item) => item.product));
+        if (!Array.isArray(data)) throw new Error("Invalid cart data");
+
+        setCartItems(data.filter((item) => item.product));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -55,79 +59,19 @@ const Checkout = () => {
     };
 
     fetchCart();
-  }, [user, buyNowItem, navigate]);
+  }, [user, navigate]);
 
-   /* ---------------- Razorpay ---------------- */
-  const loadRazorpay = () =>
-    new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      document.body.appendChild(script);
-    });
-
-  const payOnline = async () => {
-    await loadRazorpay();
-
-    const orderRes = await fetch(
-      "http://localhost:5000/api/payment/create",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ amount: totalPrice }),
-      }
-    );
-
-    const orderData = await orderRes.json();
-
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY,
-      amount: orderData.amount,
-      currency: "INR",
-      name: "E-Commerce Store",
-      order_id: orderData.id,
-      handler: async (response) => {
-        const verifyRes = await fetch(
-          "http://localhost:5000/api/payment/verify",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${user.token}`,
-            },
-            body: JSON.stringify(response),
-          }
-        );
-
-        if (!verifyRes.ok) return alert("Payment failed");
-
-        placeOrder(true);
-      },
-    };
-
-    new window.Razorpay(options).open();
-  };
-
-  /* ---------------- Persist Address ---------------- */
+  /* ---------------- SAVE ADDRESS ---------------- */
   useEffect(() => {
     localStorage.setItem("shippingAddress", JSON.stringify(shippingAddress));
   }, [shippingAddress]);
 
-  /* ---------------- Source of Truth ---------------- */
+  /* ---------------- CALCULATIONS ---------------- */
   const checkoutItems = useMemo(() => {
-    if (buyNowItem) {
-      return [
-        {
-          product: buyNowItem.product,
-          qty: buyNowItem.qty,
-        },
-      ];
-    }
-    return cartItems;
-  }, [buyNowItem, cartItems]);
+  if (buyNowItem) return [buyNowItem];
+  return cartItems;
+}, [buyNowItem, cartItems]);
+
 
   const itemsPrice = checkoutItems.reduce(
     (sum, item) => sum + item.product.price * item.qty,
@@ -137,7 +81,7 @@ const Checkout = () => {
   const shippingPrice = itemsPrice > 1000 ? 0 : 50;
   const totalPrice = itemsPrice + shippingPrice;
 
-  /* ---------------- Submit Order ---------------- */
+  /* ---------------- SUBMIT ORDER ---------------- */
   const submitHandler = async (e) => {
     e.preventDefault();
 
@@ -158,16 +102,29 @@ const Checkout = () => {
             qty: item.qty,
           })),
           shippingAddress,
-          paymentMethod,
-          totalPrice,
+          totalPrice, // ✅ no paymentMethod anymore
         }),
       });
 
       const order = await res.json();
+
       if (!res.ok) throw new Error(order.message || "Order failed");
 
+      // If buy now → just clear buyNow state
+if (buyNowItem) {
+  setBuyNowItem(null);
+} else {
+  // normal cart order
+  await fetch("http://localhost:5000/api/cart/clear", {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${user.token}`,
+    },
+  });
+}
+
       localStorage.removeItem("shippingAddress");
-      setBuyNowItem(null); // ✅ CRITICAL
+
       navigate(`/order/${order._id}`);
     } catch (err) {
       alert(err.message);
@@ -176,24 +133,16 @@ const Checkout = () => {
     }
   };
 
-  /* ---------------- UI STATES ---------------- */
-  if (loading) return <h2 className="loading">Loading checkout…</h2>;
-  if (error) return <h2 className="error">{error}</h2>;
-
-  if (checkoutItems.length === 0)
-    return (
-      <div className="empty-checkout">
-        <h2>Your cart is empty</h2>
-        <button onClick={() => navigate("/")}>Go Shopping</button>
-      </div>
-    );
+  /* ---------------- UI ---------------- */
+  if (loading) return <h2>Loading checkout…</h2>;
+  if (error) return <h2>{error}</h2>;
 
   return (
     <div className="checkout-container">
       <h1>Checkout</h1>
 
       <form className="checkout-form" onSubmit={submitHandler}>
-        {/* ---------- Shipping ---------- */}
+        {/* ---------------- USER DETAILS ---------------- */}
         <h2>Shipping Address</h2>
 
         <input
@@ -240,25 +189,33 @@ const Checkout = () => {
           }
         />
 
-        {/* ---------- Payment ---------- */}
-        <h2>Payment Method</h2>
+        {/* ✅ NEW PHONE INPUT */}
+        <input
+          required
+          placeholder="Your Phone Number"
+          value={shippingAddress.phoneNumber}
+          onChange={(e) =>
+            setShippingAddress({
+              ...shippingAddress,
+              phoneNumber: e.target.value,
+            })
+          }
+        />
 
-        <label className="radio">
-          <input
-            type="radio"
-            checked={paymentMethod === "COD"}
-            onChange={() => setPaymentMethod("COD")}
-          />
-          Cash on Delivery
-        </label>
+        {/* ---------------- ADMIN PAYMENT INFO ---------------- */}
+        <h2>Payment Information</h2>
 
-        <label className="radio">
-          <input type="radio" checked={paymentMethod==="Razorpay"}
-            onChange={()=>setPaymentMethod("Razorpay")}/>
-          Online Payment (Razorpay)
-        </label>
+        <div className="qr-section">
+          <img src="/qr-code.png" alt="QR Code" className="qr-image" />
 
-        {/* ---------- Summary ---------- */}
+          <p><strong>Admin Phone:</strong> 9876543210</p>
+          <p><strong>Account No:</strong> 1234567890</p>
+          <h3>Note !!</h3>
+          <p>Send the Screenshot of the payment to the whatsApp of the Above Number
+            to verify your payment.  </p>
+        </div>
+
+        {/* ---------------- SUMMARY ---------------- */}
         <h2>Order Summary</h2>
 
         {checkoutItems.map((item) => (
@@ -269,9 +226,7 @@ const Checkout = () => {
             />
             <div>
               <p>{item.product.name}</p>
-              <span>
-                {item.qty} × ₹{item.product.price}
-              </span>
+              <span>{item.qty} × ₹{item.product.price}</span>
             </div>
             <strong>₹{item.qty * item.product.price}</strong>
           </div>
@@ -294,8 +249,8 @@ const Checkout = () => {
 
         <button
           type="submit"
-          className="place-order-btn"
           disabled={placingOrder}
+          className="place-order-btn"
         >
           {placingOrder ? "Placing Order…" : "Place Order"}
         </button>
@@ -305,6 +260,3 @@ const Checkout = () => {
 };
 
 export default Checkout;
-
-
-

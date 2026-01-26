@@ -5,14 +5,11 @@ const Product = require("../models/Product");
 /* ---------------- CREATE ORDER ---------------- */
 const createOrder = async (req, res) => {
   try {
-    const { orderItems, shippingAddress, paymentMethod, totalPrice } = req.body;
+    // ✅ REMOVED paymentMethod completely
+    const { orderItems, shippingAddress, totalPrice } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ message: "No order items" });
-    }
-
-    if (!["COD", "Razorpay"].includes(paymentMethod)) {
-      return res.status(400).json({ message: "Invalid payment method" });
     }
 
     const processedOrderItems = [];
@@ -23,9 +20,21 @@ const createOrder = async (req, res) => {
       }
 
       const product = await Product.findById(item.product);
+
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
+
+      /* ---------------- STOCK SAFETY CHECK ---------------- */
+      if (product.stock < item.qty) {
+        return res.status(400).json({
+          message: `${product.name} is out of stock`,
+        });
+      }
+
+      // ✅ Reduce stock correctly
+      product.stock -= item.qty;
+      await product.save();
 
       processedOrderItems.push({
         product: product._id,
@@ -40,35 +49,33 @@ const createOrder = async (req, res) => {
       user: req.user._id,
       orderItems: processedOrderItems,
       shippingAddress,
-      paymentMethod,
       totalPrice,
     });
 
     const createdOrder = await order.save();
+
+    // ✅ clear cart automatically
+    req.user.cartItems = [];
+    await req.user.save();
+
     res.status(201).json(createdOrder);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+/* ---------------- GET MY ORDERS ---------------- */
 const getMyOrders = async (req, res) => {
   const orders = await Order.find({ user: req.user._id }).sort({
     createdAt: -1,
   });
+
   res.json(orders);
 };
 
+/* ---------------- ADMIN: GET ALL ---------------- */
 const getAllOrders = async (req, res) => {
   try {
-    const keyword = req.query.keyword
-      ? {
-          $or: [
-            { "user.name": { $regex: req.query.keyword, $options: "i" } },
-            { "user.email": { $regex: req.query.keyword, $options: "i" } },
-          ],
-        }
-      : {};
-
     const orders = await Order.find({})
       .populate("user", "name email")
       .sort({ createdAt: -1 });
@@ -79,6 +86,7 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+/* ---------------- GET SINGLE ---------------- */
 const getOrderById = async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate("user", "name email")
@@ -91,6 +99,7 @@ const getOrderById = async (req, res) => {
   res.json(order);
 };
 
+/* ---------------- MARK PAID (optional now) ---------------- */
 const updateOrderToPaid = async (req, res) => {
   const order = await Order.findById(req.params.id);
 
@@ -105,6 +114,7 @@ const updateOrderToPaid = async (req, res) => {
   res.json(updatedOrder);
 };
 
+/* ---------------- UPDATE STATUS ---------------- */
 const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -112,12 +122,6 @@ const updateOrderStatus = async (req, res) => {
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
-    }
-
-    if (order.isCancelled) {
-      return res.status(400).json({
-        message: "Cancelled orders cannot be updated",
-      });
     }
 
     const allowedTransitions = {
@@ -145,17 +149,18 @@ const updateOrderStatus = async (req, res) => {
     }
 
     await order.save();
+
     res.json(order);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+/* ---------------- DELETE ---------------- */
 const deleteOrder = async (req, res) => {
   const order = await Order.findById(req.params.id);
 
-  if (!order)
-    return res.status(404).json({ message: "Order not found" });
+  if (!order) return res.status(404).json({ message: "Order not found" });
 
   await order.deleteOne();
   res.json({ message: "Order deleted" });
@@ -170,4 +175,3 @@ module.exports = {
   updateOrderStatus,
   deleteOrder,
 };
-

@@ -30,13 +30,9 @@ const orderSchema = mongoose.Schema(
       city: { type: String, required: true },
       postalCode: { type: String, required: true },
       country: { type: String, required: true },
+      phoneNumber:{ type: String, required:true},
     },
 
-    paymentMethod: {
-      type: String,
-      enum: ["COD", "Razorpay"],
-      required: true,
-    },
 
     totalPrice: { type: Number, required: true },
 
@@ -51,8 +47,6 @@ const orderSchema = mongoose.Schema(
       email_address: String,
     },
 
-    razorpayOrderId: String,
-    razorpayPaymentId: String,
 
     /* ---------------- DELIVERY STATUS (NEW) ---------------- */
     orderStatus: {

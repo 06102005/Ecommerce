@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./AdminOrdersDone.css";
 
@@ -18,7 +19,6 @@ const AdminOrdersDone = () => {
     });
     const data = await res.json();
 
-    // only PAID + DELIVERED
     setOrders(data.filter((o) => o.isPaid && o.orderStatus === "Delivered"));
   };
 
@@ -36,7 +36,7 @@ const AdminOrdersDone = () => {
     );
   });
 
-  /* ---------------- PAGINATION AFTER SEARCH ---------------- */
+  /* ---------------- PAGINATION ---------------- */
   const totalPages = Math.max(
     1,
     Math.ceil(searchedOrders.length / ORDERS_PER_PAGE)
@@ -113,7 +113,14 @@ const AdminOrdersDone = () => {
                   <span className="status delivered">Delivered</span>
                 </td>
 
-                <td>
+                <td className="actions">
+                  <Link
+                    to={`/order/${o._id}`}
+                    className="view-btn"
+                  >
+                    View
+                  </Link>
+
                   <button
                     className="delete-btn"
                     onClick={() => deleteOrder(o._id)}

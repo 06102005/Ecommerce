@@ -54,14 +54,11 @@ const Order = () => {
             {order.isPaid ? "Paid" : "Not Paid"}
           </span>
           <span
-  className={`status ${
-    order.orderStatus === "Delivered" ? "delivered" : "pending"
-  }`}
+  className={`status ${order.isDelivered ? "delivered" : "pending"}`}
 >
-  {order.orderStatus === "Delivered"
-    ? "Delivered"
-    : "Not Delivered"}
+  {order.isDelivered ? "Delivered" : "Not Delivered"}
 </span>
+
 
         </div>
       </div>
@@ -73,6 +70,7 @@ const Order = () => {
           {order.shippingAddress.city}, {order.shippingAddress.postalCode}
         </p>
         <p>{order.shippingAddress.country}</p>
+        <p>{order.shippingAddress.phoneNumber}</p>
       </div>
 
       <div className="order-box">

@@ -4,18 +4,20 @@ import { useAuth } from "../context/AuthContext";
 import { useBuyNow } from "../context/BuyNowContext";
 import "./ProductDetails.css";
 
+const MAX_QTY = 15;
+
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { setBuyNowItem } = useBuyNow();
-
+   
   const [product, setProduct] = useState(null);
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [wishlisted, setWishlisted] = useState(false);
-
+  
   /* ---------- FETCH PRODUCT ---------- */
   useEffect(() => {
     const fetchProduct = async () => {
@@ -107,11 +109,14 @@ const ProductDetails = () => {
   if (error) return <h2>{error}</h2>;
   if (!product) return null;
 
-  const stock = product.stock;
+const inStock = product.countInStock > 0;
 
-<p className={`stock ${stock === 0 ? "out" : "in"}`}>
-  {stock > 0 ? `${stock} in stock` : "Out of stock"}
+
+<p className={`stock ${inStock ? "in" : "out"}`}>
+  {inStock ? "In stock" : "Out of stock"}
 </p>
+
+
 
 
   return (
@@ -143,27 +148,33 @@ const ProductDetails = () => {
 
           <p className="description">{product.description}</p>
 
-          <p className={`stock ${product.stock === 0 ? "out" : "in"}`}>
-            {stock}
+          <p className={`stock ${inStock ? "in" : "out"}`}>
+             {inStock ? 'In stock' : 'Out of stock'}
           </p>
+          
+          <div className="qty-controls">
+            <button
+               disabled={qty <= 1}
+               onClick={() => setQty(qty - 1)}
+             >
+            −
+        </button>
 
-          {stock > 0 && (
-  <div className="qty-controls">
-    <button disabled={qty <= 1} onClick={() => setQty(qty - 1)}>−</button>
-    <span>{qty}</span>
-    <button
-      disabled={qty >= stock}
-      onClick={() => setQty(qty + 1)}
-    >
-      +
-    </button>
-  </div>
-)}
+  <span>{qty}</span>
+
+  <button
+    disabled={qty >= MAX_QTY}
+    onClick={() => setQty(qty + 1)}
+  >
+    +
+  </button>
+</div>
+
 
           <div className="button-row">
             <button
   className="add-cart-btn"
-  disabled={stock === 0}
+  disabled={!inStock}
   onClick={addToCartHandler}
 >
   Add to Cart
@@ -171,7 +182,7 @@ const ProductDetails = () => {
 
 <button
   className="buy-btn"
-  disabled={stock === 0}
+  disabled={!inStock}
   onClick={buyNowHandler}
 >
   Buy Now

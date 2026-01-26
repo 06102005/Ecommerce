@@ -1,15 +1,27 @@
+/* =====================================
+   Checkout Layout
+===================================== */
+
 .checkout-container {
   max-width: 900px;
-  margin: auto;
-  padding: 20px;
-  background: #fff;
+  margin: 40px auto;
+  padding: 28px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .checkout-container h1 {
-  color: #ff7a00;
   text-align: center;
-  margin-bottom: 20px;
+  color: #ff7a00;
+  margin-bottom: 24px;
+  font-size: 28px;
+  font-weight: 600;
 }
+
+/* =====================================
+   Form
+===================================== */
 
 .checkout-form {
   display: flex;
@@ -18,73 +30,155 @@
 }
 
 .checkout-form h2 {
-  margin-top: 20px;
+  margin-top: 26px;
+  font-size: 18px;
+  color: #333;
   border-bottom: 2px solid #ff7a00;
   padding-bottom: 6px;
 }
 
+/* =====================================
+   Inputs
+===================================== */
+
 .checkout-form input {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #dcdcdc;
+  font-size: 14px;
+  transition: 0.2s;
 }
 
+.checkout-form input:focus {
+  outline: none;
+  border-color: #ff7a00;
+  box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.15);
+}
+
+/* two-column row */
 .row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
-.radio {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* =====================================
+   Payment / QR Section
+===================================== */
+
+.qr-section {
+  margin-top: 12px;
+  padding: 22px;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
 }
 
-.radio.disabled {
-  opacity: 0.5;
+.qr-image {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  margin-bottom: 14px;
+  padding: 10px;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #ddd;
 }
+
+.qr-section p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.qr-section strong {
+  color: #111;
+}
+
+.qr-section h3 {
+  margin-top: 12px;
+  font-size: 15px;
+  color: #d9534f;
+}
+
+/* =====================================
+   Order Summary
+===================================== */
 
 .summary-item {
   display: grid;
   grid-template-columns: 60px 1fr auto;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
-  background: #f9f9f9;
-  padding: 10px;
-  border-radius: 6px;
+  background: #f6f6f6;
+  padding: 10px 12px;
+  border-radius: 8px;
 }
 
 .summary-item img {
   width: 60px;
   height: 60px;
   object-fit: cover;
+  border-radius: 6px;
 }
+
+.summary-item p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.summary-item span {
+  font-size: 13px;
+  color: #666;
+}
+
+.summary-item strong {
+  font-size: 14px;
+}
+
+/* =====================================
+   Price Box
+===================================== */
 
 .price-box {
   margin-top: 10px;
+  padding-top: 8px;
 }
 
 .price-box div {
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
+  font-size: 14px;
 }
 
 .price-box .total {
-  font-weight: bold;
+  font-weight: 700;
+  font-size: 16px;
   border-top: 1px solid #ccc;
   padding-top: 10px;
 }
 
+/* =====================================
+   Button
+===================================== */
+
 .place-order-btn {
-  margin-top: 20px;
-  padding: 12px;
-  background: #ff7a00;
-  color: #fff;
+  margin-top: 24px;
+  padding: 14px;
   border: none;
+  border-radius: 8px;
+  background: #ff7a00;
+  color: white;
   font-size: 16px;
-  border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
+  transition: 0.2s;
+}
+
+.place-order-btn:hover:not(:disabled) {
+  background: #e66d00;
 }
 
 .place-order-btn:disabled {
@@ -92,18 +186,31 @@
   cursor: not-allowed;
 }
 
+/* =====================================
+   States
+===================================== */
+
 .loading,
 .error {
   text-align: center;
+  margin-top: 50px;
 }
 
 .empty-checkout {
   text-align: center;
-  padding: 60px;
+  padding: 80px 20px;
 }
 
-/* ---------- Mobile ---------- */
+/* =====================================
+   Responsive
+===================================== */
+
 @media (max-width: 768px) {
+  .checkout-container {
+    margin: 10px;
+    padding: 18px;
+  }
+
   .row {
     flex-direction: column;
   }
@@ -111,10 +218,15 @@
   .summary-item {
     grid-template-columns: 1fr;
     text-align: center;
+    gap: 8px;
   }
 
   .summary-item img {
     margin: auto;
   }
-}
 
+  .qr-image {
+    width: 150px;
+    height: 150px;
+  }
+}

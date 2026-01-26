@@ -52,7 +52,27 @@ tbody td {
   color: #fff;
 }
 
+/* ---------- Actions ---------- */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
 /* ---------- Buttons ---------- */
+.view-btn {
+  background: #007bff;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.view-btn:hover {
+  background: #0056b3;
+}
+
 .delete-btn {
   background: #dc3545;
   border: none;
@@ -100,5 +120,9 @@ tbody td {
     display: flex;
     justify-content: space-between;
     padding: 6px;
+  }
+
+  .actions {
+    justify-content: flex-end;
   }
 }
