@@ -15,11 +15,16 @@ const AdminOrders = () => {
 
   /* ---------------- FETCH ORDERS ---------------- */
   const fetchOrders = async () => {
-    const res = await fetch("http://localhost:5000/api/orders", {
-      headers: { Authorization: `Bearer ${user.token}` },
-    });
-    const data = await res.json();
-    setOrders(data);
+    try {
+      const res = await fetch("http://localhost:5000/api/orders", {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+
+      const data = await res.json();
+      setOrders(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -31,9 +36,10 @@ const AdminOrders = () => {
     (o) => !(o.isPaid && o.orderStatus === "Delivered")
   );
 
-  /* ---------------- SEARCH (GLOBAL) ---------------- */
+  /* ---------------- SEARCH ---------------- */
   const searchedOrders = activeOrders.filter((o) => {
     const q = search.toLowerCase();
+
     return (
       o.user?.name?.toLowerCase().includes(q) ||
       o.user?.email?.toLowerCase().includes(q) ||
@@ -41,7 +47,7 @@ const AdminOrders = () => {
     );
   });
 
-  /* ---------------- PAGINATION AFTER SEARCH ---------------- */
+  /* ---------------- PAGINATION ---------------- */
   const totalPages = Math.max(
     1,
     Math.ceil(searchedOrders.length / ORDERS_PER_PAGE)
@@ -62,6 +68,7 @@ const AdminOrders = () => {
       },
       body: JSON.stringify({ status }),
     });
+
     fetchOrders();
   };
 
@@ -70,6 +77,7 @@ const AdminOrders = () => {
       method: "PUT",
       headers: { Authorization: `Bearer ${user.token}` },
     });
+
     fetchOrders();
   };
 
@@ -80,12 +88,14 @@ const AdminOrders = () => {
       method: "DELETE",
       headers: { Authorization: `Bearer ${user.token}` },
     });
+
     fetchOrders();
   };
 
+  /* ---------------- UI ---------------- */
   return (
     <div className="admin-orders">
-      {/* ---------- Header ---------- */}
+      {/* Header */}
       <div className="orders-header">
         <h1>Admin Orders</h1>
 
@@ -94,7 +104,7 @@ const AdminOrders = () => {
         </Link>
       </div>
 
-      {/* ---------- Search ---------- */}
+      {/* Search */}
       <input
         className="search"
         placeholder="Search by user / email / order id..."
@@ -105,14 +115,14 @@ const AdminOrders = () => {
         }}
       />
 
-      {/* ---------- Table ---------- */}
+      {/* Table */}
       <table>
         <thead>
           <tr>
             <th>Order</th>
             <th>User</th>
             <th>Total</th>
-            <th>Payment</th>
+            <th>Payment Status</th>
             <th>Status</th>
             <th>Progress</th>
             <th>Actions</th>
@@ -141,13 +151,14 @@ const AdminOrders = () => {
 
                   <td>₹{o.totalPrice}</td>
 
+                  {/* ✅ Only Paid / Pending */}
                   <td>
                     <span
                       className={`status ${
                         o.isPaid ? "paid" : "pending"
                       }`}
                     >
-                      {o.isPaid ? "Paid" : o.paymentMethod}
+                      {o.isPaid ? "Paid" : "Not Paid"}
                     </span>
 
                     {!o.isPaid && (
@@ -184,10 +195,7 @@ const AdminOrders = () => {
                   </td>
 
                   <td className="action-col">
-                    <Link
-                      to={`/order/${o._id}`}
-                      className="view-btn"
-                    >
+                    <Link to={`/order/${o._id}`} className="view-btn">
                       View
                     </Link>
 
@@ -205,12 +213,9 @@ const AdminOrders = () => {
         </tbody>
       </table>
 
-      {/* ---------- Pagination ---------- */}
+      {/* Pagination */}
       <div className="pagination">
-        <button
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-        >
+        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
           Prev
         </button>
 

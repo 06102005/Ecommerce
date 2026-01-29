@@ -41,6 +41,7 @@
 table {
   width: 100%;
   border-collapse: collapse;
+  background: #fff;
 }
 
 thead {
@@ -116,14 +117,6 @@ tbody td {
   cursor: pointer;
 }
 
-/* ---------- Actions ---------- */
-.action-col {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
-}
-
 .view-btn {
   background: #007bff;
   color: #fff;
@@ -147,6 +140,14 @@ tbody td {
 
 .delete-btn:hover {
   background: #c82333;
+}
+
+/* ---------- Actions ---------- */
+.action-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
 }
 
 .done {
