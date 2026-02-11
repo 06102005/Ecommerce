@@ -2,18 +2,22 @@ const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 
-/* ---------------- CREATE ORDER ---------------- */
+
+/* =================================
+   CREATE ORDER (GUEST BASED — NO SESSION)
+================================= */
 const createOrder = async (req, res) => {
   try {
-    // ✅ REMOVED paymentMethod completely
     const { orderItems, shippingAddress, totalPrice } = req.body;
 
+    /* ---------------- VALIDATION ---------------- */
     if (!orderItems || orderItems.length === 0) {
-      return res.status(400).json({ message: "No order items" });
+      return res.status(400).json({ message: "Cart is empty" });
     }
 
     const processedOrderItems = [];
 
+    /* ---------------- PROCESS ITEMS ---------------- */
     for (const item of orderItems) {
       if (!mongoose.Types.ObjectId.isValid(item.product)) {
         return res.status(400).json({ message: "Invalid product ID" });
@@ -25,14 +29,13 @@ const createOrder = async (req, res) => {
         return res.status(404).json({ message: "Product not found" });
       }
 
-      /* ---------------- STOCK SAFETY CHECK ---------------- */
+      /* stock check */
       if (product.stock < item.qty) {
         return res.status(400).json({
           message: `${product.name} is out of stock`,
         });
       }
 
-      // ✅ Reduce stock correctly
       product.stock -= item.qty;
       await product.save();
 
@@ -45,52 +48,46 @@ const createOrder = async (req, res) => {
       });
     }
 
-    const order = new Order({
-      user: req.user._id,
+    /* ---------------- CREATE ORDER ---------------- */
+    const order = await Order.create({
       orderItems: processedOrderItems,
       shippingAddress,
       totalPrice,
+      orderStatus: "Pending",
     });
 
-    const createdOrder = await order.save();
+    res.status(201).json(order);
 
-    // ✅ clear cart automatically
-    req.user.cartItems = [];
-    await req.user.save();
-
-    res.status(201).json(createdOrder);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
 
-/* ---------------- GET MY ORDERS ---------------- */
-const getMyOrders = async (req, res) => {
-  const orders = await Order.find({ user: req.user._id }).sort({
-    createdAt: -1,
-  });
 
+/* =================================
+   GET MY ORDERS
+================================= */
+const getMyOrders = async (req, res) => {
+  const orders = await Order.find({}).sort({ createdAt: -1 });
   res.json(orders);
 };
 
-/* ---------------- ADMIN: GET ALL ---------------- */
-const getAllOrders = async (req, res) => {
-  try {
-    const orders = await Order.find({})
-      .populate("user", "name email")
-      .sort({ createdAt: -1 });
 
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+/* =================================
+   ADMIN — GET ALL
+================================= */
+const getAllOrders = async (req, res) => {
+  const orders = await Order.find({}).sort({ createdAt: -1 });
+  res.json(orders);
 };
 
-/* ---------------- GET SINGLE ---------------- */
+
+/* =================================
+   GET SINGLE
+================================= */
 const getOrderById = async (req, res) => {
-  const order = await Order.findById(req.params.id)
-    .populate("user", "name email")
-    .populate("orderItems.product", "name image");
+  const order = await Order.findById(req.params.id);
 
   if (!order) {
     return res.status(404).json({ message: "Order not found" });
@@ -99,50 +96,39 @@ const getOrderById = async (req, res) => {
   res.json(order);
 };
 
-/* ---------------- MARK PAID (optional now) ---------------- */
+
+/* =================================
+   MARK PAID
+================================= */
 const updateOrderToPaid = async (req, res) => {
   const order = await Order.findById(req.params.id);
 
-  if (!order) {
-    return res.status(404).json({ message: "Order not found" });
-  }
+  if (!order) return res.status(404).json({ message: "Order not found" });
 
   order.isPaid = true;
   order.paidAt = Date.now();
 
   const updatedOrder = await order.save({ validateBeforeSave: false });
+
   res.json(updatedOrder);
 };
 
-/* ---------------- UPDATE STATUS ---------------- */
+
+/* =================================
+   UPDATE STATUS
+================================= */
 const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
+
     const order = await Order.findById(req.params.id);
 
-    if (!order) {
+    if (!order)
       return res.status(404).json({ message: "Order not found" });
-    }
-
-    const allowedTransitions = {
-      Pending: ["Processing"],
-      Processing: ["Shipped"],
-      Shipped: ["Delivered"],
-      Delivered: [],
-    };
-
-    if (!allowedTransitions[order.orderStatus].includes(status)) {
-      return res.status(400).json({
-        message: `Invalid transition from ${order.orderStatus} to ${status}`,
-      });
-    }
 
     order.orderStatus = status;
 
-    if (status === "Shipped") {
-      order.shippedAt = new Date();
-    }
-
+    if (status === "Shipped") order.shippedAt = new Date();
     if (status === "Delivered") {
       order.isDelivered = true;
       order.deliveredAt = new Date();
@@ -151,20 +137,26 @@ const updateOrderStatus = async (req, res) => {
     await order.save();
 
     res.json(order);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-/* ---------------- DELETE ---------------- */
+
+/* =================================
+   DELETE
+================================= */
 const deleteOrder = async (req, res) => {
   const order = await Order.findById(req.params.id);
 
-  if (!order) return res.status(404).json({ message: "Order not found" });
+  if (!order)
+    return res.status(404).json({ message: "Order not found" });
 
   await order.deleteOne();
+
   res.json({ message: "Order deleted" });
 };
+
 
 module.exports = {
   createOrder,

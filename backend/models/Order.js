@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+
 const orderItemSchema = mongoose.Schema(
   {
     product: {
@@ -15,40 +16,32 @@ const orderItemSchema = mongoose.Schema(
   { _id: false }
 );
 
+
 const orderSchema = mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
     orderItems: [orderItemSchema],
 
+    /* CUSTOMER INFO */
     shippingAddress: {
+      name: { type: String, required: true },
+      email: { type: String, required: true },
+      phoneNumber: { type: String, required: true },
       address: { type: String, required: true },
       city: { type: String, required: true },
       postalCode: { type: String, required: true },
       country: { type: String, required: true },
-      phoneNumber:{ type: String, required:true},
     },
 
+    totalPrice: {
+      type: Number,
+      required: true,
+    },
 
-    totalPrice: { type: Number, required: true },
-
-    /* ---------------- PAYMENT ---------------- */
+    /* PAYMENT */
     isPaid: { type: Boolean, default: false },
     paidAt: Date,
 
-    paymentResult: {
-      id: String,
-      status: String,
-      update_time: String,
-      email_address: String,
-    },
-
-
-    /* ---------------- DELIVERY STATUS (NEW) ---------------- */
+    /* STATUS */
     orderStatus: {
       type: String,
       enum: ["Pending", "Processing", "Shipped", "Delivered"],
@@ -60,28 +53,9 @@ const orderSchema = mongoose.Schema(
     isDelivered: { type: Boolean, default: false },
     deliveredAt: Date,
 
-    /* ---------------- CANCELLATION ---------------- */
-    isCancelled: { type: Boolean, default: false },
-    cancelledAt: Date,
-    cancelReason: String,
-
-    /* ---------------- REFUND ---------------- */
-    isRefunded: { type: Boolean, default: false },
-    refundedAt: Date,
-
-    refundResult: {
-      id: String,
-      status: String,
-    },
-
-    refundStatus: {
-      type: String,
-      enum: ["pending", "processed", "failed"],
-      default: "pending",
-    },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Order", orderSchema);
 
+module.exports = mongoose.model("Order", orderSchema);

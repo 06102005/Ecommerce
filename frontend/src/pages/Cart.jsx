@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useBuyNow } from "../context/BuyNowContext";
 import { useNavigate } from "react-router-dom";
 import "./Cart.css";
@@ -7,83 +6,53 @@ import "./Cart.css";
 const MAX_QTY = 15;
 
 const Cart = () => {
-  const { user } = useAuth();
   const { setBuyNowItem } = useBuyNow();
   const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState([]);
-  const [error, setError] = useState("");
+
+  /* ================= FETCH CART ================= */
+  const fetchCart = async () => {
+    const res = await fetch("http://localhost:5000/api/cart", {
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    setCartItems(data);
+  };
 
   useEffect(() => {
-    if (!user?.token) {
-      navigate("/login");
-      return;
-    }
-
-    const fetchCart = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/cart", {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load cart");
-
-        if (!Array.isArray(data)) {
-          throw new Error("Invalid cart data");
-        }
-
-        setCartItems(data.filter(item => item.product));
-      } catch (err) {
-        setError(err.message);
-      }
-    };
-
     fetchCart();
-  }, [user, navigate]);
+  }, []);
 
+  /* ================= UPDATE QTY ================= */
   const updateQty = async (productId, qty) => {
     if (qty < 1 || qty > MAX_QTY) return;
 
-    const res = await fetch(
-      `http://localhost:5000/api/cart/${productId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ qty }),
-      }
-    );
+    await fetch(`http://localhost:5000/api/cart/${productId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ qty }),
+    });
 
-    const data = await res.json();
-    setCartItems(data.filter(item => item.product));
+    fetchCart();
   };
 
+  /* ================= REMOVE ================= */
   const removeItem = async (productId) => {
-    const res = await fetch(
-      `http://localhost:5000/api/cart/${productId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      }
-    );
+    await fetch(`http://localhost:5000/api/cart/${productId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
 
-    const data = await res.json();
-    setCartItems(data.filter(item => item.product));
+    fetchCart();
   };
 
   const totalPrice = cartItems.reduce(
     (sum, item) => sum + item.product.price * item.qty,
     0
   );
-
-  if (error) return <h2>{error}</h2>;
 
   return (
     <div className="cart-container">
@@ -94,63 +63,54 @@ const Cart = () => {
           <p>Your cart is empty</p>
         ) : (
           <>
-            {cartItems.map(item => {
-              const inStock = item.product.countInStock > 0;
+            {cartItems.map((item) => (
+              <div key={item.product._id} className="cart-item">
+                <img
+                  src={`http://localhost:5000${item.product.image}`}
+                  alt={item.product.name}
+                />
 
-              return (
-                <div key={item.product._id} className="cart-item">
-                  <img
-                    src={`http://localhost:5000${item.product.image}`}
-                    alt={item.product.name}
-                  />
+                <div className="cart-details">
+                  <h3>{item.product.name}</h3>
+                  <p>₹{item.product.price}</p>
 
-                  <div className="cart-details">
-                    <h3>{item.product.name}</h3>
-                    <p>₹{item.product.price}</p>
+                  <div className="qty-controls">
+                    <button
+                      disabled={item.qty <= 1}
+                      onClick={() =>
+                        updateQty(item.product._id, item.qty - 1)
+                      }
+                    >
+                      −
+                    </button>
 
-                    <p className="stock">
-                      {inStock ? "In stock" : "Out of stock"}
-                    </p>
-
-                    <div className="qty-controls">
-                      <button
-                        disabled={item.qty <= 1}
-                        onClick={() =>
-                          updateQty(item.product._id, item.qty - 1)
-                        }
-                      >
-                        −
-                      </button>
-
-                      <span>{item.qty}</span>
-
-                      <button
-                        disabled={item.qty >= MAX_QTY}
-                        onClick={() =>
-                          updateQty(item.product._id, item.qty + 1)
-                        }
-                      >
-                        +
-                      </button>
-                    </div>
+                    <span>{item.qty}</span>
 
                     <button
-                      className="remove-btn"
-                      onClick={() => removeItem(item.product._id)}
+                      disabled={item.qty >= MAX_QTY}
+                      onClick={() =>
+                        updateQty(item.product._id, item.qty + 1)
+                      }
                     >
-                      Remove
+                      +
                     </button>
                   </div>
+
+                  <button
+                    className="remove-btn"
+                    onClick={() => removeItem(item.product._id)}
+                  >
+                    Remove
+                  </button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
 
             <h2>Total: ₹{totalPrice}</h2>
 
             <button
               className="checkout-btn"
               onClick={() => {
-                // ✅ THIS IS THE FIX
                 setBuyNowItem(null);
                 navigate("/checkout");
               }}

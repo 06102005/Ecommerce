@@ -1,76 +1,83 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Navbar.css";
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [admin, setAdmin] = useState(
+    !!localStorage.getItem("adminToken")
+  );
 
+  /* =================================
+     LISTEN FOR TOKEN CHANGES
+  ================================= */
+  useEffect(() => {
+    const checkToken = () => {
+      setAdmin(!!localStorage.getItem("adminToken"));
+    };
+
+    // fires when storage changes
+    window.addEventListener("storage", checkToken);
+
+    // also run immediately (important)
+    checkToken();
+
+    return () => {
+      window.removeEventListener("storage", checkToken);
+    };
+  }, []);
+
+  /* =================================
+     LOGOUT
+  ================================= */
   const logoutHandler = () => {
-    logout();
-    navigate("/login");
+    localStorage.removeItem("adminToken");
+    setAdmin(false); // instant UI update
+    navigate("/");
   };
 
   return (
     <nav className="navbar">
-      {/* LEFT */}
-      <Link to="/" className="logo">
-        ShopX
-      </Link>
+      <Link to="/" className="logo">ShopX</Link>
 
-      {/* HAMBURGER */}
       <button
         className="hamburger"
         onClick={() => setMenuOpen(!menuOpen)}
-        aria-label="Toggle menu"
       >
         ☰
       </button>
 
-      {/* RIGHT */}
       <div className={`nav-right ${menuOpen ? "open" : ""}`}>
-        <Link to="/" onClick={() => setMenuOpen(false)}>
-          Home
-        </Link>
+        
+        {/* ALWAYS */}
+        <Link to="/">Home</Link>
+        <Link to="/cart">Cart</Link>
 
-        {/* ---------- NORMAL USER ---------- */}
-        {user && user.role !== "admin" && (
+        {/* ===============================
+           USER ONLY LINKS
+        =============================== */}
+        {!admin && (
           <>
-            <Link to="/wishlist" onClick={() => setMenuOpen(false)}>
-              Wishlist
-            </Link>
-
-            <Link to="/my-orders" onClick={() => setMenuOpen(false)}>
-              My Orders
-            </Link>
-
-            <Link to="/cart" onClick={() => setMenuOpen(false)}>
-              Cart
-            </Link>
+            <Link to="/wishlist">Wishlist</Link>
+            <Link to="/my-orders">My Orders</Link>
+            <Link to="/login">Admin</Link>
           </>
         )}
 
-        {/* ---------- ADMIN ---------- */}
-        {user?.role === "admin" && (
+        {/* ===============================
+           ADMIN ONLY LINKS
+        =============================== */}
+        {admin && (
           <>
             <Link to="/admin/dashboard">Dashboard</Link>
             <Link to="/admin/products">Products</Link>
             <Link to="/admin/orders">Orders</Link>
-          </>
-        )}
 
-        {/* ---------- AUTH ---------- */}
-        {user ? (
-          <button onClick={logoutHandler} className="logout-btn">
-            Logout
-          </button>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <button onClick={logoutHandler} className="logout-btn">
+              Logout
+            </button>
           </>
         )}
       </div>

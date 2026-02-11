@@ -1,42 +1,58 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Link, Navigate } from "react-router-dom";
 import "./AdminOrdersDone.css";
 
 const ORDERS_PER_PAGE = 6;
 
 const AdminOrdersDone = () => {
-  const { user } = useAuth();
+  const token = localStorage.getItem("adminToken");
 
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  /* ---------------- FETCH DONE ORDERS ---------------- */
-  const fetchOrders = async () => {
-    const res = await fetch("http://localhost:5000/api/orders", {
-      headers: { Authorization: `Bearer ${user.token}` },
-    });
-    const data = await res.json();
+  /* ---------- Guard ---------- */
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
-    setOrders(data.filter((o) => o.isPaid && o.orderStatus === "Delivered"));
+  /* ---------- Fetch ---------- */
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/orders", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      const doneOrders = (Array.isArray(data) ? data : []).filter(
+        (o) => o.isPaid && o.orderStatus === "Delivered"
+      );
+
+      setOrders(doneOrders);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
-    if (user?.role === "admin") fetchOrders();
-  }, [user]);
+    fetchOrders();
+  }, []);
 
-  /* ---------------- GLOBAL SEARCH ---------------- */
+  /* ---------- Search ---------- */
   const searchedOrders = orders.filter((o) => {
     const q = search.toLowerCase();
+
     return (
-      o.user?.name?.toLowerCase().includes(q) ||
-      o.user?.email?.toLowerCase().includes(q) ||
+      o.shippingAddress?.name?.toLowerCase().includes(q) ||
+      o.shippingAddress?.email?.toLowerCase().includes(q) ||
       o._id.toLowerCase().includes(q)
     );
   });
 
-  /* ---------------- PAGINATION ---------------- */
+  /* ---------- Pagination ---------- */
   const totalPages = Math.max(
     1,
     Math.ceil(searchedOrders.length / ORDERS_PER_PAGE)
@@ -47,31 +63,27 @@ const AdminOrdersDone = () => {
     page * ORDERS_PER_PAGE
   );
 
-  /* ---------------- DELETE ORDER ---------------- */
+  /* ---------- Delete ---------- */
   const deleteOrder = async (id) => {
     if (!window.confirm("Delete this completed order?")) return;
 
     await fetch(`http://localhost:5000/api/orders/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${user.token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     fetchOrders();
   };
 
-  /* ---------------- GUARD ---------------- */
-  if (!user || user.role !== "admin") {
-    return <h2 className="error">Not authorized</h2>;
-  }
-
   return (
     <div className="admin-orders">
       <h1>Completed Orders</h1>
 
-      {/* -------- Search -------- */}
       <input
         className="search"
-        placeholder="Search by user / email / order id..."
+        placeholder="Search..."
         value={search}
         onChange={(e) => {
           setSearch(e.target.value);
@@ -79,62 +91,25 @@ const AdminOrdersDone = () => {
         }}
       />
 
-      {/* -------- Table -------- */}
       <table>
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>User</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-
         <tbody>
-          {paginatedOrders.length === 0 ? (
-            <tr>
-              <td colSpan="5">No completed orders found</td>
+          {paginatedOrders.map((o) => (
+            <tr key={o._id}>
+              <td>{o.shippingAddress?.name}</td>
+              <td>{o.shippingAddress?.email}</td>
+              <td>₹{o.totalPrice}</td>
+              <td>Delivered</td>
+              <td>
+                <Link to={`/order/${o._id}`}>View</Link>
+                <button onClick={() => deleteOrder(o._id)}>
+                  Delete
+                </button>
+              </td>
             </tr>
-          ) : (
-            paginatedOrders.map((o) => (
-              <tr key={o._id}>
-                <td>{o._id.slice(-6)}</td>
-
-                <td>
-                  <strong>{o.user?.name}</strong>
-                  <br />
-                  <small>{o.user?.email}</small>
-                </td>
-
-                <td>₹{o.totalPrice}</td>
-
-                <td>
-                  <span className="status delivered">Delivered</span>
-                </td>
-
-                <td className="actions">
-                  <Link
-                    to={`/order/${o._id}`}
-                    className="view-btn"
-                  >
-                    View
-                  </Link>
-
-                  <button
-                    className="delete-btn"
-                    onClick={() => deleteOrder(o._id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
+          ))}
         </tbody>
       </table>
 
-      {/* -------- Pagination -------- */}
       <div className="pagination">
         <button
           disabled={page === 1}
@@ -144,7 +119,7 @@ const AdminOrdersDone = () => {
         </button>
 
         <span>
-          Page {page} / {totalPages}
+          {page} / {totalPages}
         </span>
 
         <button

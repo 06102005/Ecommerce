@@ -2,64 +2,45 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// REGISTER
-const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
-
-  try {
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
-
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-//Login
-const loginUser = async (req, res) => {
+/* =============================
+   ADMIN LOGIN ONLY
+============================= */
+const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
-    if (!user) {
+    const admin = await User.findOne({ email });
+
+    if (!admin) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, admin.password);
+
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // extra safety
+    if (admin.role !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Only admins can access" });
+    }
+
     const token = jwt.sign(
       {
-        id: user._id,
-        role: user.role,   // ✅ IMPORTANT
+        id: admin._id,
+        role: "admin",
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
     res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,    // ✅ MUST BE SENT
+      _id: admin._id,
+      email: admin.email,
+      role: "admin",
       token,
     });
   } catch (error) {
@@ -67,5 +48,4 @@ const loginUser = async (req, res) => {
   }
 };
 
-
-module.exports = { registerUser, loginUser };
+module.exports = { loginAdmin };

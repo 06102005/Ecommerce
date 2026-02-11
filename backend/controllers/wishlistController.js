@@ -1,39 +1,50 @@
-const User = require("../models/User");
+const Product = require("../models/Product");
 
-/* Get Wishlist */
+/* ===============================
+   GET WISHLIST
+================================ */
 const getWishlist = async (req, res) => {
-  const user = await User.findById(req.user._id).populate("wishlist");
+  if (!req.session.wishlist) req.session.wishlist = [];
 
-  res.json(user.wishlist || []);
-};
-
-/* Add to Wishlist */
-const addToWishlist = async (req, res) => {
-  const user = await User.findById(req.user._id);
-
-  if (!user.wishlist.includes(req.params.productId)) {
-    user.wishlist.push(req.params.productId);
-    await user.save();
-  }
-
-  res.json(user.wishlist);
-};
-
-/* Remove from Wishlist */
-const removeFromWishlist = async (req, res) => {
-  const user = await User.findById(req.user._id);
-
-  user.wishlist = user.wishlist.filter(
-    (id) => id.toString() !== req.params.productId
+  const populated = await Promise.all(
+    req.session.wishlist.map((id) => Product.findById(id))
   );
 
-  await user.save();
-  res.json(user.wishlist);
+  res.json(populated);
+};
+
+
+/* ===============================
+   ADD
+================================ */
+const addToWishlist = (req, res) => {
+  const { productId } = req.params;
+
+  if (!req.session.wishlist) req.session.wishlist = [];
+
+  if (!req.session.wishlist.includes(productId)) {
+    req.session.wishlist.push(productId);
+  }
+
+  res.json(req.session.wishlist);
+};
+
+
+/* ===============================
+   REMOVE
+================================ */
+const removeFromWishlist = (req, res) => {
+  const { productId } = req.params;
+
+  req.session.wishlist = (req.session.wishlist || []).filter(
+    (id) => id !== productId
+  );
+
+  res.json(req.session.wishlist);
 };
 
 module.exports = {
   getWishlist,
   addToWishlist,
-  removeFromWishlist
+  removeFromWishlist,
 };
-

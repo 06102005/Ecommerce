@@ -1,10 +1,13 @@
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const guestIdMiddleware = require("./middleware/guestId");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
 
+/* ROUTES */
 const productRoutes = require("./routes/productRoutes");
 const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orderRoutes");
@@ -13,31 +16,50 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const refundRoutes = require("./routes/refundRoutes");
 const webhookRoutes = require("./routes/webhookRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const wishlistRoutes = require("./routes/wishlistRoutes.js");
+const wishlistRoutes = require("./routes/wishlistRoutes");
 
-const { protect } = require("./middleware/authMiddleware");
-const { razorpayWebhook} = require("./controllers/webhookController");
+const { razorpayWebhook } = require("./controllers/webhookController");
 
 const app = express();
 
+/* ===============================
+   DATABASE
+================================ */
 connectDB();
 
-app.use("/api/webhooks", webhookRoutes);
+/* ===============================
+   CORS
+================================ */
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
-app.use(cors());
+/* ===============================
+   PARSERS
+================================ */
+app.use(express.json());
+app.use(cookieParser());
 
-/* ✅ Razorpay webhook MUST come BEFORE express.json */
+/* ===============================
+   GUEST ID (VERY IMPORTANT)
+================================ */
+app.use(guestIdMiddleware);
+
+/* ===============================
+   WEBHOOK
+================================ */
 app.post(
   "/api/webhooks/razorpay",
   express.raw({ type: "application/json" }),
   razorpayWebhook
 );
 
-
-/* ✅ Now enable JSON parsing for rest of app */
-app.use(express.json());
-
-/* Routes */
+/* ===============================
+   API ROUTES
+================================ */
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
@@ -46,23 +68,25 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/refund", refundRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/webhooks", webhookRoutes);
+
+/* ===============================
+   STATIC
+================================ */
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
+/* ===============================
+   HEALTH
+================================ */
 app.get("/", (req, res) => {
   res.send("Backend API running");
 });
 
-app.get("/api/protected", protect, (req, res) => {
-  res.json({
-    message: "Access granted",
-    user: req.user,
-  });
-});
-
+/* ===============================
+   SERVER
+================================ */
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-

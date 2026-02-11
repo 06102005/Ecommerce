@@ -31,6 +31,8 @@ router.put(
 );
 router.delete("/:id", protect, admin, deleteProduct);
 
+console.log("UPLOAD:", upload);
+
 
 module.exports = router;
 

@@ -1,23 +1,25 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Link, Navigate } from "react-router-dom";
 import "./AdminOrders.css";
 
 const ORDERS_PER_PAGE = 6;
 const STATUS_FLOW = ["Pending", "Processing", "Shipped", "Delivered"];
 
 const AdminOrders = () => {
-  const { user } = useAuth();
+  const token = localStorage.getItem("adminToken");
 
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  /* ---------------- FETCH ORDERS ---------------- */
+  /* ---------- Guard ---------- */
+  if (!token) return <Navigate to="/login" replace />;
+
+  /* ---------- Fetch ---------- */
   const fetchOrders = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/orders", {
-        headers: { Authorization: `Bearer ${user.token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
@@ -28,26 +30,23 @@ const AdminOrders = () => {
   };
 
   useEffect(() => {
-    if (user?.role === "admin") fetchOrders();
-  }, [user]);
+    fetchOrders();
+  }, []);
 
-  /* ---------------- ACTIVE ORDERS ONLY ---------------- */
+  /* ---------- Filter ---------- */
   const activeOrders = orders.filter(
     (o) => !(o.isPaid && o.orderStatus === "Delivered")
   );
 
-  /* ---------------- SEARCH ---------------- */
   const searchedOrders = activeOrders.filter((o) => {
     const q = search.toLowerCase();
-
     return (
-      o.user?.name?.toLowerCase().includes(q) ||
-      o.user?.email?.toLowerCase().includes(q) ||
+      o.shippingAddress?.name?.toLowerCase().includes(q) ||
+      o.shippingAddress?.email?.toLowerCase().includes(q) ||
       o._id.toLowerCase().includes(q)
     );
   });
 
-  /* ---------------- PAGINATION ---------------- */
   const totalPages = Math.max(
     1,
     Math.ceil(searchedOrders.length / ORDERS_PER_PAGE)
@@ -58,13 +57,13 @@ const AdminOrders = () => {
     page * ORDERS_PER_PAGE
   );
 
-  /* ---------------- ACTIONS ---------------- */
+  /* ---------- Actions ---------- */
   const updateStatus = async (id, status) => {
     await fetch(`http://localhost:5000/api/orders/${id}/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ status }),
     });
@@ -75,7 +74,7 @@ const AdminOrders = () => {
   const markPaid = async (id) => {
     await fetch(`http://localhost:5000/api/orders/${id}/pay`, {
       method: "PUT",
-      headers: { Authorization: `Bearer ${user.token}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     fetchOrders();
@@ -86,28 +85,24 @@ const AdminOrders = () => {
 
     await fetch(`http://localhost:5000/api/orders/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${user.token}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     fetchOrders();
   };
 
-  /* ---------------- UI ---------------- */
   return (
     <div className="admin-orders">
-      {/* Header */}
       <div className="orders-header">
         <h1>Admin Orders</h1>
-
         <Link to="/admin/orders/done" className="done-page-btn">
           Done Orders
         </Link>
       </div>
 
-      {/* Search */}
       <input
         className="search"
-        placeholder="Search by user / email / order id..."
+        placeholder="Search..."
         value={search}
         onChange={(e) => {
           setSearch(e.target.value);
@@ -115,121 +110,69 @@ const AdminOrders = () => {
         }}
       />
 
-      {/* Table */}
       <table>
         <thead>
           <tr>
-            <th>Order</th>
-            <th>User</th>
+            <th>Name</th>
+            <th>Email</th>
             <th>Total</th>
-            <th>Payment Status</th>
+            <th>Payment</th>
             <th>Status</th>
-            <th>Progress</th>
             <th>Actions</th>
           </tr>
         </thead>
 
         <tbody>
-          {paginatedOrders.length === 0 ? (
-            <tr>
-              <td colSpan="7">No orders found</td>
-            </tr>
-          ) : (
-            paginatedOrders.map((o) => {
-              const nextStatus =
-                STATUS_FLOW[STATUS_FLOW.indexOf(o.orderStatus) + 1];
+          {paginatedOrders.map((o) => {
+            const nextStatus =
+              STATUS_FLOW[STATUS_FLOW.indexOf(o.orderStatus) + 1];
 
-              return (
-                <tr key={o._id}>
-                  <td>{o._id.slice(-6)}</td>
+            return (
+              <tr key={o._id}>
+                <td>{o.shippingAddress?.name}</td>
+                <td>{o.shippingAddress?.email}</td>
+                <td>₹{o.totalPrice}</td>
 
-                  <td>
-                    <strong>{o.user?.name}</strong>
-                    <br />
-                    <small>{o.user?.email}</small>
-                  </td>
-
-                  <td>₹{o.totalPrice}</td>
-
-                  {/* ✅ Only Paid / Pending */}
-                  <td>
-                    <span
-                      className={`status ${
-                        o.isPaid ? "paid" : "pending"
-                      }`}
-                    >
-                      {o.isPaid ? "Paid" : "Not Paid"}
-                    </span>
-
-                    {!o.isPaid && (
-                      <button
-                        className="pay-btn"
-                        onClick={() => markPaid(o._id)}
-                      >
-                        Mark Paid
-                      </button>
-                    )}
-                  </td>
-
-                  <td>
-                    <span
-                      className={`status ${o.orderStatus.toLowerCase()}`}
-                    >
-                      {o.orderStatus}
-                    </span>
-                  </td>
-
-                  <td>
-                    {nextStatus ? (
-                      <button
-                        className="status-btn"
-                        onClick={() =>
-                          updateStatus(o._id, nextStatus)
-                        }
-                      >
-                        Mark {nextStatus}
-                      </button>
-                    ) : (
-                      <span className="done">✓</span>
-                    )}
-                  </td>
-
-                  <td className="action-col">
-                    <Link to={`/order/${o._id}`} className="view-btn">
-                      View
-                    </Link>
-
-                    <button
-                      className="delete-btn"
-                      onClick={() => deleteOrder(o._id)}
-                    >
-                      Delete
+                {/* Payment */}
+                <td>
+                  {o.isPaid ? (
+                    <span className="paid">Paid</span>
+                  ) : (
+                    <button onClick={() => markPaid(o._id)}>
+                      Mark Paid
                     </button>
-                  </td>
-                </tr>
-              );
-            })
-          )}
+                  )}
+                </td>
+
+                {/* Status */}
+                <td>
+                  <span className={`status ${o.orderStatus.toLowerCase()}`}>
+                    {o.orderStatus}
+                  </span>
+                </td>
+
+                {/* Actions */}
+                <td className="actions">
+                  <Link to={`/order/${o._id}`}>View</Link>
+                  {nextStatus && (
+                    <button
+                      onClick={() =>
+                        updateStatus(o._id, nextStatus)
+                      }
+                    >
+                      Mark {nextStatus}
+                    </button>
+                  )}
+
+                  <button onClick={() => deleteOrder(o._id)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
-
-      {/* Pagination */}
-      <div className="pagination">
-        <button disabled={page === 1} onClick={() => setPage(page - 1)}>
-          Prev
-        </button>
-
-        <span>
-          Page {page} / {totalPages}
-        </span>
-
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-        >
-          Next
-        </button>
-      </div>
     </div>
   );
 };

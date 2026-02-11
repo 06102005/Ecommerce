@@ -11,33 +11,29 @@ const {
   deleteOrder,
 } = require("../controllers/orderController");
 
+const { admin, protect } = require("../middleware/authMiddleware");
+
 const { cancelOrder } = require("../controllers/cancelController");
 const { refundOrder } = require("../controllers/refundController");
 
 
-const { protect, admin } = require("../middleware/authMiddleware");
+/* =========================
+   GUEST ROUTES
+========================= */
+router.post("/", createOrder);
+router.get("/myorders", getMyOrders);
+router.get("/:id", getOrderById);
 
-/* ---------------- ORDERS ---------------- */
-router.post("/", protect, createOrder);
-router.get("/myorders", protect, getMyOrders);
+/* =========================
+   ADMIN ONLY
+========================= */
 router.get("/", protect, admin, getAllOrders);
-router.get("/:id", protect, getOrderById);
-
-/* ---------------- PAYMENT ---------------- */
+router.get("/:id", protect, admin, getOrderById);
 router.put("/:id/pay", protect, admin, updateOrderToPaid);
-
-/* ---------------- DELIVERY (ADMIN) ---------------- */
 router.put("/:id/status", protect, admin, updateOrderStatus);
-
 router.delete("/:id", protect, admin, deleteOrder);
-
-/* ---------------- CANCELLATION & REFUND ---------------- */
 router.put("/:id/cancel", protect, cancelOrder);
 router.put("/:id/refund", protect, admin, refundOrder);
 
 
-
 module.exports = router;
-
-
-

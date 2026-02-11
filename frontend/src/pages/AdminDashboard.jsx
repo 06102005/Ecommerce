@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -21,7 +20,7 @@ ChartJS.register(
 );
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const token = localStorage.getItem("adminToken");
 
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -34,8 +33,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  /* ---------- Fetch Stats ---------- */
   useEffect(() => {
-    if (!user || !user.token) return;
+    if (!token) return;
 
     const fetchStats = async () => {
       try {
@@ -43,13 +43,16 @@ const AdminDashboard = () => {
           "http://localhost:5000/api/admin/stats",
           {
             headers: {
-              Authorization: `Bearer ${user.token}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load stats");
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to load stats");
+        }
 
         setStats({
           totalOrders: Number(data.totalOrders) || 0,
@@ -61,7 +64,6 @@ const AdminDashboard = () => {
             : [],
         });
       } catch (err) {
-        console.error("Dashboard error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -69,20 +71,15 @@ const AdminDashboard = () => {
     };
 
     fetchStats();
-  }, [user]);
+  }, [token]);
 
   /* ---------- Guards ---------- */
-  if (!user || user.role !== "admin") {
-    return <h2 className="error">Not authorized</h2>;
+  if (!token) {
+    return <Navigate to="/login" replace />;
   }
 
-  if (loading) {
-    return <h2 className="loading">Loading dashboard…</h2>;
-  }
-
-  if (error) {
-    return <h2 className="error">{error}</h2>;
-  }
+  if (loading) return <h2 className="loading">Loading dashboard…</h2>;
+  if (error) return <h2 className="error">{error}</h2>;
 
   /* ---------- Chart ---------- */
   const chartData = {
@@ -100,7 +97,7 @@ const AdminDashboard = () => {
     <div className="admin-dashboard">
       <h1>Admin Dashboard</h1>
 
-      {/* ---------- Stats ---------- */}
+      {/* Stats */}
       <div className="stats-grid">
         <div className="card">
           <h3>Orders</h3>
@@ -123,7 +120,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* ---------- Chart ---------- */}
+      {/* Chart */}
       <div className="chart-box">
         <h2>Monthly Sales</h2>
 
@@ -134,20 +131,13 @@ const AdminDashboard = () => {
         )}
       </div>
 
-      {/* ---------- Links ---------- */}
+      {/* Links */}
       <div className="admin-links">
         <Link to="/admin/products">Manage Products</Link>
         <Link to="/admin/orders">Manage Orders</Link>
-        <Link to="/admin/users">Manage Users</Link>
       </div>
     </div>
   );
 };
 
 export default AdminDashboard;
-
-
-
-
-
-
