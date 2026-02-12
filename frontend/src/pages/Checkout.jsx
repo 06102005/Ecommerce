@@ -32,7 +32,7 @@ const Checkout = () => {
   });
 
   /* ===============================
-     FETCH CART (guest cookie based)
+     FETCH CART
   =============================== */
   useEffect(() => {
     const fetchCart = async () => {
@@ -40,7 +40,7 @@ const Checkout = () => {
         setLoading(true);
 
         const res = await fetch("http://localhost:5000/api/cart", {
-          credentials: "include", // 🔥 IMPORTANT
+          credentials: "include",
         });
 
         const data = await res.json();
@@ -78,8 +78,7 @@ const Checkout = () => {
     0
   );
 
-  const shippingPrice = itemsPrice > 1000 ? 0 : 50;
-  const totalPrice = itemsPrice + shippingPrice;
+  const totalPrice = itemsPrice; // 🚨 Shipping removed completely
 
   /* ===============================
      PLACE ORDER
@@ -94,7 +93,7 @@ const Checkout = () => {
     try {
       const res = await fetch("http://localhost:5000/api/orders", {
         method: "POST",
-        credentials: "include", // 🔥 cookie cart
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -112,7 +111,6 @@ const Checkout = () => {
 
       if (!res.ok) throw new Error(order.message || "Order failed");
 
-      // clear cart only if normal cart
       if (buyNowItem) {
         setBuyNowItem(null);
       } else {
@@ -135,8 +133,8 @@ const Checkout = () => {
   /* ===============================
      UI
   =============================== */
-  if (loading) return <h2>Loading checkout…</h2>;
-  if (error) return <h2>{error}</h2>;
+  if (loading) return <h2 className="loading">Loading checkout…</h2>;
+  if (error) return <h2 className="error">{error}</h2>;
 
   return (
     <div className="checkout-container">
@@ -222,6 +220,41 @@ const Checkout = () => {
           }
         />
 
+        {/* ===============================
+            PAYMENT INFORMATION
+        =============================== */}
+
+        <h2>Payment Information</h2>
+
+        <div className="qr-section">
+          <img
+            src="/qr-code.png"   // 🔥 Place your QR image inside public folder
+            alt="QR Code"
+            className="qr-image"
+          />
+
+          <p>
+            Account Number: <strong>1234567890</strong>
+          </p>
+          <p>
+            Phone Number: <strong>9876543210</strong>
+          </p>
+
+          <h3>
+            Please forward the payment screen shot to the above number.
+          </h3>
+          <h3>
+            Your order will be delivered within 3 - 5 business days.
+          </h3>
+          <h3>
+            For further info contact the above number.
+          </h3>
+        </div>
+
+        {/* ===============================
+            ORDER SUMMARY
+        =============================== */}
+
         <h2>Order Summary</h2>
 
         {checkoutItems.map((item) => (
@@ -245,17 +278,18 @@ const Checkout = () => {
             <span>Items</span>
             <span>₹{itemsPrice}</span>
           </div>
-          <div>
-            <span>Shipping</span>
-            <span>{shippingPrice === 0 ? "Free" : `₹${shippingPrice}`}</span>
-          </div>
+
           <div className="total">
             <span>Total</span>
             <span>₹{totalPrice}</span>
           </div>
         </div>
 
-        <button type="submit" disabled={placingOrder}>
+        <button
+          type="submit"
+          disabled={placingOrder}
+          className="place-order-btn"
+        >
           {placingOrder ? "Placing Order…" : "Place Order"}
         </button>
       </form>

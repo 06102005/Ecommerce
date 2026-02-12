@@ -56,17 +56,6 @@ const Navbar = () => {
         <Link to="/cart">Cart</Link>
 
         {/* ===============================
-           USER ONLY LINKS
-        =============================== */}
-        {!admin && (
-          <>
-            <Link to="/wishlist">Wishlist</Link>
-            <Link to="/my-orders">My Orders</Link>
-            <Link to="/login">Admin</Link>
-          </>
-        )}
-
-        {/* ===============================
            ADMIN ONLY LINKS
         =============================== */}
         {admin && (

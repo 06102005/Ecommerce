@@ -46,7 +46,7 @@ const ProductDetails = () => {
   return (
     <div className="product-page">
       <div className="product-card">
-        <img
+        <img 
           src={`http://localhost:5000${product.image}`}
           alt={product.name}
         />
@@ -58,19 +58,23 @@ const ProductDetails = () => {
           {inStock ? "In stock" : "Out of stock"}
         </p>
 
+        <p className="description">{product.description}</p>
+
         <div className="qty-controls">
           <button disabled={qty <= 1} onClick={() => setQty(qty - 1)}>−</button>
           <span>{qty}</span>
           <button disabled={qty >= MAX_QTY} onClick={() => setQty(qty + 1)}>+</button>
         </div>
 
-        <button disabled={!inStock} onClick={addToCartHandler}>
+       <div className="button-row">
+        <button className="add-cart-btn" disabled={!inStock} onClick={addToCartHandler}>
           Add to Cart
         </button>
 
-        <button disabled={!inStock} onClick={buyNowHandler}>
+        <button className="buy-btn" disabled={!inStock} onClick={buyNowHandler}>
           Buy Now
         </button>
+        </div>
       </div>
     </div>
   );
