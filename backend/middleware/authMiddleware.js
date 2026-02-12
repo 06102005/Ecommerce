@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-/* =================================
-   PROTECT (admin only now)
+/* ===============================
+   PROTECT (any logged in user)
 ================================= */
 const protect = async (req, res, next) => {
   let token;
@@ -13,14 +13,13 @@ const protect = async (req, res, next) => {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      const admin = await User.findById(decoded.id).select("-password");
+      const user = await User.findById(decoded.id).select("-password");
 
-      if (!admin || admin.role !== "admin") {
-        return res.status(403).json({ message: "Admin only" });
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
       }
 
-      req.user = admin;
-
+      req.user = user;
       next();
     } catch (err) {
       return res.status(401).json({ message: "Invalid token" });
@@ -30,7 +29,15 @@ const protect = async (req, res, next) => {
   }
 };
 
-/* dummy admin middleware (optional, keeps routes unchanged) */
-const admin = (req, res, next) => next();
+/* ===============================
+   ADMIN ONLY
+================================= */
+const admin = (req, res, next) => {
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    return res.status(403).json({ message: "Admin only" });
+  }
+};
 
 module.exports = { protect, admin };

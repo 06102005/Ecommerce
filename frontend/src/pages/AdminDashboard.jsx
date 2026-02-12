@@ -19,13 +19,13 @@ ChartJS.register(
   Legend
 );
 
+
+
 const AdminDashboard = () => {
   const token = localStorage.getItem("adminToken");
 
   const [stats, setStats] = useState({
     totalOrders: 0,
-    totalProducts: 0,
-    totalUsers: 0,
     totalRevenue: 0,
     monthlySales: [],
   });
@@ -33,7 +33,6 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  /* ---------- Fetch Stats ---------- */
   useEffect(() => {
     if (!token) return;
 
@@ -56,8 +55,6 @@ const AdminDashboard = () => {
 
         setStats({
           totalOrders: Number(data.totalOrders) || 0,
-          totalProducts: Number(data.totalProducts) || 0,
-          totalUsers: Number(data.totalUsers) || 0,
           totalRevenue: Number(data.totalRevenue) || 0,
           monthlySales: Array.isArray(data.monthlySales)
             ? data.monthlySales
@@ -73,15 +70,13 @@ const AdminDashboard = () => {
     fetchStats();
   }, [token]);
 
-  /* ---------- Guards ---------- */
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/admin/login" replace />;
   }
 
   if (loading) return <h2 className="loading">Loading dashboard…</h2>;
   if (error) return <h2 className="error">{error}</h2>;
 
-  /* ---------- Chart ---------- */
   const chartData = {
     labels: stats.monthlySales.map((m) => m.month),
     datasets: [
@@ -100,22 +95,12 @@ const AdminDashboard = () => {
       {/* Stats */}
       <div className="stats-grid">
         <div className="card">
-          <h3>Orders</h3>
+          <h3>Total Orders</h3>
           <p>{stats.totalOrders}</p>
         </div>
 
-        <div className="card">
-          <h3>Products</h3>
-          <p>{stats.totalProducts}</p>
-        </div>
-
-        <div className="card">
-          <h3>Users</h3>
-          <p>{stats.totalUsers}</p>
-        </div>
-
         <div className="card revenue">
-          <h3>Revenue</h3>
+          <h3>Total Revenue</h3>
           <p>₹{stats.totalRevenue}</p>
         </div>
       </div>
@@ -135,6 +120,7 @@ const AdminDashboard = () => {
       <div className="admin-links">
         <Link to="/admin/products">Manage Products</Link>
         <Link to="/admin/orders">Manage Orders</Link>
+        <Link to="/admin/users">Manage Users</Link>
       </div>
     </div>
   );

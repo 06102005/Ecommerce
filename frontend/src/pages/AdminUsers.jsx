@@ -1,161 +1,137 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import axios from "axios";
 import "./AdminUsers.css";
 
 const AdminUsers = () => {
-  const { user } = useAuth();
-
-  const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [admins, setAdmins] = useState([]);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  /* ---------- Fetch Users ---------- */
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/admin/users", {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+  // ✅ Use SAME token key as dashboard
+  const token = localStorage.getItem("adminToken");
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load users");
+  const fetchAdmins = async () => {
+  try {
+    const res = await axios.get(
+      "http://localhost:5000/api/admin/users",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
-      setUsers(data);
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (!Array.isArray(res.data)) {
+      setAdmins([]);
+      return;
     }
-  };
+
+    const onlyAdmins = res.data.filter(
+      (user) => user.role === "admin"
+    );
+
+    setAdmins(onlyAdmins);
+
+  } catch (err) {
+    setError("Failed to load admins");
+    console.error(err.response?.data || err.message);
+  }
+};
+
 
   useEffect(() => {
-    if (user?.token) fetchUsers();
-  }, [user]);
+    if (token) fetchAdmins();
+  }, [token]);
 
-  /* ---------- Update Role ---------- */
-  const updateRole = async (id, role) => {
-    if (!window.confirm("Change user role?")) return;
+  const handleAddAdmin = async (e) => {
+    e.preventDefault();
 
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/admin/users/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-          body: JSON.stringify({ role }),
-        }
+      await axios.post(
+        "http://localhost:5000/api/admin/users",
+        { email, password },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      fetchUsers();
+      setEmail("");
+      setPassword("");
+      fetchAdmins();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.message || "Error creating admin");
     }
   };
 
-  /* ---------- Delete User ---------- */
-  const deleteUser = async (id) => {
-    if (!window.confirm("Delete this user permanently?")) return;
-
+  const handleDelete = async (id) => {
     try {
-      const res = await fetch(
+      await axios.delete(
         `http://localhost:5000/api/admin/users/${id}`,
         {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
-      fetchUsers();
+      fetchAdmins();
     } catch (err) {
-      alert(err.message);
+      alert("Failed to delete user");
     }
   };
-
-  /* ---------- Guards ---------- */
-  if (!user || user.role !== "admin") {
-    return <h2 className="error">Not authorized</h2>;
-  }
-
-  if (loading) return <h2 className="loading">Loading users…</h2>;
-  if (error) return <h2 className="error">{error}</h2>;
-
-  /* ---------- Search ---------- */
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div className="admin-users">
-      <h1>Admin Users</h1>
+      <h2>Manage Admin Users</h2>
 
-      <input
-        className="search"
-        placeholder="Search users…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <form onSubmit={handleAddAdmin}>
+        <input
+          type="email"
+          placeholder="Admin Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <button type="submit">Add Admin</button>
+      </form>
+
+      <hr />
+
+      <h3>Existing Admins</h3>
 
       <table>
         <thead>
           <tr>
-            <th>Name</th>
             <th>Email</th>
-            <th>Role</th>
-            <th />
+            <th>Created At</th>
+            <th>Action</th>
           </tr>
         </thead>
-
         <tbody>
-          {filteredUsers.map((u) => (
-            <tr key={u._id}>
-              <td data-label="Name">{u.name}</td>
-              <td data-label="Email">{u.email}</td>
-              <td data-label="Role">
-                <select
-                  value={u.role}
-                  onChange={(e) =>
-                    updateRole(u._id, e.target.value)
-                  }
-                  disabled={u._id === user._id}
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </td>
-              <td data-label="Actions">
-                {u._id !== user._id && (
+          {Array.isArray(admins) &&
+            admins.map((admin) => (
+              <tr key={admin._id}>
+                <td>{admin.email}</td>
+                <td>
+                  {new Date(admin.createdAt).toLocaleDateString()}
+                </td>
+                <td>
                   <button
-                    className="danger"
-                    onClick={() => deleteUser(u._id)}
+                    onClick={() => handleDelete(admin._id)}
                   >
-                    Delete
+                    Remove
                   </button>
-                )}
-              </td>
-            </tr>
-          ))}
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
-
-      {filteredUsers.length === 0 && (
-        <p className="empty">No users found</p>
-      )}
     </div>
   );
 };

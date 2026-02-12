@@ -92,22 +92,55 @@ const AdminOrdersDone = () => {
       />
 
       <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
         <tbody>
-          {paginatedOrders.map((o) => (
-            <tr key={o._id}>
-              <td>{o.shippingAddress?.name}</td>
-              <td>{o.shippingAddress?.email}</td>
-              <td>₹{o.totalPrice}</td>
-              <td>Delivered</td>
-              <td>
-                <Link to={`/order/${o._id}`}>View</Link>
-                <button onClick={() => deleteOrder(o._id)}>
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
+  {paginatedOrders.map((o) => (
+    <tr key={o._id}>
+      <td>{o.shippingAddress?.name}</td>
+      <td>{o.shippingAddress?.email}</td>
+      <td>₹{o.totalPrice}</td>
+
+      {/* Payment Status */}
+      <td>
+        <span className="badge paid">Paid</span>
+      </td>
+
+      {/* Order Status */}
+      <td>
+        <span className="badge delivered">
+          {o.orderStatus}
+        </span>
+      </td>
+
+      {/* Actions */}
+      <td className="actions">
+        <Link
+          to={`/order/${o._id}`}
+          className="action-btn view-btn"
+        >
+          View
+        </Link>
+
+        <button
+          onClick={() => deleteOrder(o._id)}
+          className="action-btn delete-btn"
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
       </table>
 
       <div className="pagination">

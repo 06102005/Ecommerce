@@ -18,6 +18,7 @@ import AdminProducts from "./pages/AdminProducts";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminOrdersDone from "./pages/AdminOrdersDone";
 import AdminProductForm from "./pages/AdminProductForm";
+import AdminUsers from "./pages/AdminUsers";
 
 /* ---------- ADMIN PROTECTION ---------- */
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -96,6 +97,10 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          <Route path="/admin/users" element={<ProtectedRoute>
+                <AdminUsers />
+              </ProtectedRoute>} />
 
           {/* ================= FALLBACK ================= */}
           <Route path="*" element={<NotFound />} />

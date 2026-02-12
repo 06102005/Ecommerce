@@ -42,14 +42,19 @@ const getAllUsers = async (req, res) => {
  * @access  Admin
  */
 const deleteUser = async (req, res) => {
-  const user = await User.findById(req.params.id);
+  try {
+    const user = await User.findById(req.params.id);
 
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await user.deleteOne();
+
+    res.json({ message: "User removed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-
-  await user.deleteOne();
-  res.json({ message: "User deleted" });
 };
 
 /**
@@ -70,8 +75,49 @@ const toggleAdminRole = async (req, res) => {
   res.json(user);
 };
 
+/* ===============================
+   CREATE ADMIN
+================================= */
+const createAdminUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields required" });
+    }
+
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const newAdmin = new User({
+      email,
+      password,
+      role: "admin",
+    });
+
+    await newAdmin.save();
+
+    res.status(201).json({
+      _id: newAdmin._id,
+      email: newAdmin.email,
+      role: newAdmin.role,
+      createdAt: newAdmin.createdAt,
+    });
+
+  } catch (error) {
+    console.error("CREATE ADMIN ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
 module.exports = {
   getAllUsers,
   deleteUser,
-  toggleAdminRole
+  toggleAdminRole,createAdminUser
 };

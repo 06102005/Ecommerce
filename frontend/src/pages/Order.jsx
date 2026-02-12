@@ -33,9 +33,8 @@ const Order = () => {
   if (!order) return null;
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Order Placed Successfully 🎉</h1>
-
+  <div className="order-page">
+    <div className="order-card">
       <h3>Order ID: {order._id}</h3>
 
       <h2>Customer Info</h2>
@@ -46,16 +45,17 @@ const Order = () => {
       <h2>Shipping Address</h2>
       <p>
         {order.shippingAddress.address}, {order.shippingAddress.city},{" "}
-        {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+        {order.shippingAddress.postalCode},{" "}
+        {order.shippingAddress.country}
       </p>
 
-      <h2>Items</h2>
+      <h2>Order Items</h2>
+
       {order.orderItems.map((item) => (
-        <div key={item.product} style={{ marginBottom: 10 }}>
+        <div key={item.product} className="order-item">
           <img
             src={`http://localhost:5000${item.image}`}
             alt={item.name}
-            width={60}
           />
           <span>
             {item.name} × {item.qty} = ₹{item.price * item.qty}
@@ -63,9 +63,13 @@ const Order = () => {
         </div>
       ))}
 
-      <h2>Total: ₹{order.totalPrice}</h2>
+      <div className="order-total">
+        Total: ₹{order.totalPrice}
+      </div>
+
     </div>
-  );
+  </div>
+);
 };
 
 export default Order;

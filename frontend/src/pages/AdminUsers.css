@@ -1,101 +1,189 @@
+/* ===============================
+   ADMIN USERS PAGE
+   Scoped only to this page
+================================= */
+
 .admin-users {
   padding: 30px;
-  background: #fff;
   min-height: 100vh;
+  background: #f4f6f9;
+  font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
-.admin-users h1 {
-  text-align: center;
+/* ---------- Page Title ---------- */
+.admin-users h2 {
   color: #ff7a00;
   margin-bottom: 20px;
 }
 
-/* ---------- Search ---------- */
-.search {
-  width: 100%;
-  max-width: 400px;
-  padding: 10px;
-  margin: 0 auto 20px;
-  display: block;
+/* ---------- Card Container ---------- */
+.admin-users form,
+.admin-users table {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* ---------- Add Admin Form ---------- */
+.admin-users form {
+  padding: 20px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.admin-users input {
+  padding: 10px 12px;
+  border-radius: 6px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  font-size: 14px;
+  min-width: 220px;
+  transition: 0.2s ease;
+}
+
+.admin-users input:focus {
+  border-color: #ff7a00;
+  outline: none;
+}
+
+/* ---------- Add Button ---------- */
+.admin-users form button {
+  background: #ff7a00;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.admin-users form button:hover {
+  background: #e56b00;
+}
+
+/* ---------- Section Title ---------- */
+.admin-users h3 {
+  margin-bottom: 15px;
+  color: #333;
 }
 
 /* ---------- Table ---------- */
-table {
+.admin-users table {
   width: 100%;
   border-collapse: collapse;
+  overflow: hidden;
 }
 
-thead {
+.admin-users thead {
   background: #000;
 }
 
-thead th {
+.admin-users thead th {
   color: #fff;
   padding: 12px;
-}
-
-tbody td {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-}
-
-select {
-  padding: 6px;
-}
-
-/* ---------- Buttons ---------- */
-button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button.danger {
-  background: #d9534f;
-  color: #fff;
-}
-
-/* ---------- States ---------- */
-.loading,
-.error,
-.empty {
   text-align: center;
-  padding: 30px;
 }
 
-/* ---------- Responsive ---------- */
+.admin-users tbody td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.admin-users tbody tr:hover {
+  background: #fafafa;
+}
+
+/* ---------- Remove Button ---------- */
+.admin-users tbody button {
+  background: #dc3545;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.admin-users tbody button:hover {
+  background: #c82333;
+}
+
+/* ---------- Divider ---------- */
+.admin-users hr {
+  border: none;
+  height: 1px;
+  background: #ddd;
+  margin: 25px 0;
+}
+
+/* ===============================
+   RESPONSIVE DESIGN
+================================= */
+
 @media (max-width: 768px) {
-  table,
-  thead,
-  tbody,
-  tr,
-  td,
-  th {
+
+  .admin-users form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-users input {
+    width: 100%;
+  }
+
+  .admin-users form button {
+    width: 100%;
+  }
+
+  /* Responsive table layout */
+  .admin-users table,
+  .admin-users thead,
+  .admin-users tbody,
+  .admin-users th,
+  .admin-users td,
+  .admin-users tr {
     display: block;
   }
 
-  thead {
+  .admin-users thead {
     display: none;
   }
 
-  tbody tr {
+  .admin-users tbody tr {
+    background: #fff;
     margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   }
 
-  tbody td {
+  .admin-users tbody td {
     display: flex;
     justify-content: space-between;
-    padding: 8px;
+    padding: 8px 0;
+    border: none;
   }
 
-  tbody td::before {
-    content: attr(data-label);
-    font-weight: bold;
+  .admin-users tbody td::before {
+    font-weight: 600;
+    color: #555;
+  }
+
+  .admin-users tbody td:nth-child(1)::before {
+    content: "Email:";
+  }
+
+  .admin-users tbody td:nth-child(2)::before {
+    content: "Created:";
+  }
+
+  .admin-users tbody td:nth-child(3)::before {
+    content: "Action:";
   }
 }
